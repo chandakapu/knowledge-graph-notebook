@@ -1,0 +1,223 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 750px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": {"background": "#6C63FF", "border": "#4B45B2", "highlight": {"background": "#8A84FF", "border": "#6C63FF"}, "hover": {"background": "#8A84FF", "border": "#6C63FF"}}, "description": "Artificial Intelligence (AI) focuses on creating intelligent machines", "font": {"color": "black"}, "id": "Artificial Intelligence", "label": "Artificial Intelligence", "shape": "dot", "size": 28, "title": "Artificial Intelligence (AI) focuses on creating intelligent machines"}, {"color": {"background": "#6C63FF", "border": "#4B45B2", "highlight": {"background": "#8A84FF", "border": "#6C63FF"}, "hover": {"background": "#8A84FF", "border": "#6C63FF"}}, "description": "Machine Learning is a subset of AI that learns from data", "font": {"color": "black"}, "id": "Machine Learning", "label": "Machine Learning", "shape": "dot", "size": 36, "title": "Machine Learning is a subset of AI that learns from data"}, {"color": {"background": "#6C63FF", "border": "#4B45B2", "highlight": {"background": "#8A84FF", "border": "#6C63FF"}, "hover": {"background": "#8A84FF", "border": "#6C63FF"}}, "description": "Deep Learning uses multi-layered networks", "font": {"color": "black"}, "id": "Deep Learning", "label": "Deep Learning", "shape": "dot", "size": 36, "title": "Deep Learning uses multi-layered networks"}, {"color": {"background": "#6C63FF", "border": "#4B45B2", "highlight": {"background": "#8A84FF", "border": "#6C63FF"}, "hover": {"background": "#8A84FF", "border": "#6C63FF"}}, "description": "Neural Networks mimic the human brain to solve complex non-linear problems", "font": {"color": "black"}, "id": "Neural Networks", "label": "Neural Networks", "shape": "dot", "size": 44, "title": "Neural Networks mimic the human brain to solve complex non-linear problems"}, {"color": {"background": "#6C63FF", "border": "#4B45B2", "highlight": {"background": "#8A84FF", "border": "#6C63FF"}, "hover": {"background": "#8A84FF", "border": "#6C63FF"}}, "description": "Gradient Descent is an optimization algorithm used to minimize a loss function", "font": {"color": "black"}, "id": "Gradient Descent", "label": "Gradient Descent", "shape": "dot", "size": 44, "title": "Gradient Descent is an optimization algorithm used to minimize a loss function"}, {"color": {"background": "#6C63FF", "border": "#4B45B2", "highlight": {"background": "#8A84FF", "border": "#6C63FF"}, "hover": {"background": "#8A84FF", "border": "#6C63FF"}}, "description": "Backpropagation calculates gradients for weight updates", "font": {"color": "black"}, "id": "Backpropagation", "label": "Backpropagation", "shape": "dot", "size": 36, "title": "Backpropagation calculates gradients for weight updates"}, {"color": {"background": "#6C63FF", "border": "#4B45B2", "highlight": {"background": "#8A84FF", "border": "#6C63FF"}, "hover": {"background": "#8A84FF", "border": "#6C63FF"}}, "description": "A Loss Function measures the error of a model", "font": {"color": "black"}, "id": "Loss Function", "label": "Loss Function", "shape": "dot", "size": 20, "title": "A Loss Function measures the error of a model"}, {"color": {"background": "#6C63FF", "border": "#4B45B2", "highlight": {"background": "#8A84FF", "border": "#6C63FF"}, "hover": {"background": "#8A84FF", "border": "#6C63FF"}}, "description": "The Derivative is used to find the minimum of the function", "font": {"color": "black"}, "id": "Derivative", "label": "Derivative", "shape": "dot", "size": 28, "title": "The Derivative is used to find the minimum of the function"}, {"color": {"background": "#6C63FF", "border": "#4B45B2", "highlight": {"background": "#8A84FF", "border": "#6C63FF"}, "hover": {"background": "#8A84FF", "border": "#6C63FF"}}, "description": "Optimization improves the performance of models", "font": {"color": "black"}, "id": "Optimization", "label": "Optimization", "shape": "dot", "size": 36, "title": "Optimization improves the performance of models"}]);
+                  edges = new vis.DataSet([{"arrows": "to", "color": {"color": "rgba(176, 190, 197, 0.4)", "highlight": "rgba(108, 99, 255, 0.4621343160647866)", "hover": "rgba(108, 99, 255, 0.4621343160647866)"}, "from": "Machine Learning", "relation": "SUBSET_OF", "title": "SUBSET_OF\u003cbr\u003eConfidence: 0.46", "to": "Artificial Intelligence", "width": 3}, {"arrows": "to", "color": {"color": "rgba(176, 190, 197, 0.4)", "highlight": "rgba(108, 99, 255, 0.8503261233992456)", "hover": "rgba(108, 99, 255, 0.8503261233992456)"}, "from": "Deep Learning", "relation": "SUBSET_OF", "title": "SUBSET_OF\u003cbr\u003eConfidence: 0.85", "to": "Machine Learning", "width": 3}, {"arrows": "to", "color": {"color": "rgba(176, 190, 197, 0.4)", "highlight": "rgba(108, 99, 255, 0.6569097484931352)", "hover": "rgba(108, 99, 255, 0.6569097484931352)"}, "from": "Deep Learning", "relation": "USES", "title": "USES\u003cbr\u003eConfidence: 0.66", "to": "Neural Networks", "width": 3}, {"arrows": "to", "color": {"color": "rgba(176, 190, 197, 0.4)", "highlight": "rgba(108, 99, 255, 0.5065565107154348)", "hover": "rgba(108, 99, 255, 0.5065565107154348)"}, "from": "Neural Networks", "relation": "USES", "title": "USES\u003cbr\u003eConfidence: 0.51", "to": "Backpropagation", "width": 3}, {"arrows": "to", "color": {"color": "rgba(176, 190, 197, 0.4)", "highlight": "rgba(108, 99, 255, 0.8492982506884807)", "hover": "rgba(108, 99, 255, 0.8492982506884807)"}, "from": "Gradient Descent", "relation": "MINIMIZES", "title": "MINIMIZES\u003cbr\u003eConfidence: 0.85", "to": "Optimization", "width": 3}, {"arrows": "to", "color": {"color": "rgba(176, 190, 197, 0.4)", "highlight": "rgba(108, 99, 255, 0.4935423536767501)", "hover": "rgba(108, 99, 255, 0.4935423536767501)"}, "from": "Gradient Descent", "relation": "CALCULATES", "title": "CALCULATES\u003cbr\u003eConfidence: 0.49", "to": "Derivative", "width": 3}, {"arrows": "to", "color": {"color": "rgba(176, 190, 197, 0.4)", "highlight": "rgba(108, 99, 255, 0.5382765893506583)", "hover": "rgba(108, 99, 255, 0.5382765893506583)"}, "from": "Backpropagation", "relation": "USES", "title": "USES\u003cbr\u003eConfidence: 0.54", "to": "Gradient Descent", "width": 3}, {"arrows": "to", "color": {"color": "rgba(176, 190, 197, 0.4)", "highlight": "rgba(108, 99, 255, 0.6442921000794339)", "hover": "rgba(108, 99, 255, 0.6442921000794339)"}, "from": "Optimization", "relation": "IMPROVES", "title": "IMPROVES\u003cbr\u003eConfidence: 0.64", "to": "Neural Networks", "width": 3}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"interaction": {"hover": true}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap');
+        
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            background-color: rgba(0,0,0,0.3); 
+            backdrop-filter: blur(8px);
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.85);
+            margin: 10% auto; 
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.4);
+            width: 40%;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            font-family: 'Outfit', sans-serif;
+            backdrop-filter: blur(16px);
+            animation: slideUp 0.4s ease-out;
+        }
+        .close {
+            color: #888;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .close:hover,
+        .close:focus {
+            color: #333;
+            text-decoration: none;
+        }
+        #modal-title { margin-top: 0; color: #2C2C2C; font-weight: 600; font-size: 24px; border-bottom: 2px solid #6C63FF; padding-bottom: 10px; display: inline-block;}
+        #modal-desc { color: #555; line-height: 1.7; font-size: 16px; margin-top: 20px;}
+        </style>
+        
+        <div id="nodeModal" class="modal">
+          <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modal-title">Node Name</h2>
+            <p id="modal-desc">Node Description...</p>
+          </div>
+        </div>
+        
+        <script type="text/javascript">
+            document.addEventListener("DOMContentLoaded", function() {
+                var modal = document.getElementById("nodeModal");
+                var span = document.getElementsByClassName("close")[0];
+                
+                span.onclick = function() {
+                    modal.style.display = "none";
+                }
+                window.onclick = function(event) {
+                    if (event.target == modal) {
+                        modal.style.display = "none";
+                    }
+                }
+                
+                // Hook into the pyvis network instance once it's loaded
+                setTimeout(function() {
+                    if (typeof network !== 'undefined') {
+                        network.on("click", function (params) {
+                            if (params.nodes.length > 0) {
+                                var nodeId = params.nodes[0];
+                                // Use the global nodes DataSet created by Pyvis
+                                var nodeData = nodes.get(nodeId);
+                                
+                                document.getElementById("modal-title").innerText = nodeData.label || nodeId;
+                                document.getElementById("modal-desc").innerText = nodeData.description || nodeData.title || "No details available.";
+                                modal.style.display = "block";
+                            }
+                        });
+                    }
+                }, 1000); // Wait 1 second for network to initialize
+            });
+        </script>
+        </body>
+</html>
