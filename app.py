@@ -19,6 +19,7 @@ class SearchResponse(BaseModel):
     reason: str
 
 app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16 MB
 
 # --------------------------------------------------------------------------- #
 # Dynamic Fallback Extraction Configuration & Logic                          #
@@ -95,8 +96,6 @@ COMMON_VERBS = {
     "gave", "given", "find", "finds", "finding", "found"
 }
 
-def clean_term(t: str) -> str:
-    return re.sub(r'^[^\w]+|[^\w]+$', '', t).strip()
 
 def dynamic_fallback_extract(text: str) -> dict:
     sentences = re.split(r'(?<=[.!?])\s+', text)
@@ -846,7 +845,7 @@ def run_extraction():
         text = request_data.get("text", "").strip()
         prompt_description = request_data.get("prompt_description", "").strip()
         examples = request_data.get("examples", [])
-        model_id = request_data.get("model_id", "gemini-3.1-flash-lite")
+        model_id = request_data.get("model_id", "gemini-2.5-flash")
         api_key = request_data.get("api_key") or os.environ.get("LANGEXTRACT_API_KEY") or os.environ.get("GEMINI_API_KEY")
         temperature = request_data.get("temperature")
         
@@ -991,4 +990,6 @@ def save_extraction():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    debug = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
+    app.run(debug=debug, host="0.0.0.0", port=port)
