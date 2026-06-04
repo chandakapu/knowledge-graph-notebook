@@ -1,5 +1,6 @@
 import io
 import os
+import platform
 import html as _html
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, KeepTogether
@@ -10,7 +11,25 @@ from reportlab.pdfbase.ttfonts import TTFont
 
 
 # ── Register TrueType fonts (full Unicode support) ────────────────────────────
-_FONTS_DIR = "C:/Windows/Fonts"
+# Platform-aware font directory discovery
+_system = platform.system()
+if _system == "Windows":
+    _FONTS_DIR = "C:/Windows/Fonts"
+elif _system == "Darwin":
+    _FONTS_DIR = "/System/Library/Fonts/Supplemental"
+else:
+    # Linux — try common TTF directories
+    for _candidate in [
+        "/usr/share/fonts/truetype/msttcorefonts",
+        "/usr/share/fonts/truetype/liberation",
+        "/usr/share/fonts/truetype",
+        "/usr/share/fonts",
+    ]:
+        if os.path.isdir(_candidate):
+            _FONTS_DIR = _candidate
+            break
+    else:
+        _FONTS_DIR = "/usr/share/fonts"
 
 def _reg(alias: str, filename: str):
     path = os.path.join(_FONTS_DIR, filename)

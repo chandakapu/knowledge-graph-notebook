@@ -21,8 +21,9 @@ This is a Flask-based application for extracting and visualizing knowledge graph
 
 - **`core/graph_extractor.py` (`GraphExtractor`)**: Wraps the Google `genai` client. It uses a Pydantic schema (`KnowledgeGraph`) to force the Gemini model into returning a strict JSON object of nodes and edges. It also contains a fallback JSON parser to handle raw string responses if the structured output fails.
 - **`core/doc_analyzer.py` (`DocAnalyzer`)**: Uses the `langextract` library with few-shot examples to extract key concepts, methods, and terms as span annotations for the frontend to highlight.
-- **`core/pdf_generator.py` (`generate_summary_pdf`)**: Uses ReportLab to generate a styled PDF summary of nodes, edges, and source documents. Registers TrueType fonts from `C:/Windows/Fonts`, falling back to Helvetica if not available.
-- **`app.py` (Dynamic Fallback Extractor)**: `dynamic_fallback_extract()` is a critical, self-contained fallback module. When the Gemini API is unavailable or returns empty results, this function uses a rule-based system (`STOPWORDS`, `RELATION_RULES`, `TECH_TERMS_DICT`, `COMMON_VERBS`) to produce nodes, edges, and highlights from raw text. Any change to extraction heuristics should be reflected here as well as in the `GraphExtractor` prompt.
+- **`core/pdf_generator.py` (`generate_summary_pdf`)**: Uses ReportLab to generate a styled PDF summary of nodes, edges, and source documents. Uses platform-aware font discovery (Windows/macOS/Linux), falling back to Helvetica if TrueType fonts are not available.
+- **`core/fallback_extractor.py` (`dynamic_fallback_extract`)**: A critical fallback module. When the Gemini API is unavailable or returns empty results, this function uses a rule-based system (`STOPWORDS`, `RELATION_RULES`, `TECH_TERMS_DICT`, `COMMON_VERBS`) to produce nodes, edges, and highlights from raw text. Any change to extraction heuristics should be reflected here as well as in the `GraphExtractor` prompt.
+- **`core/studio_templates.py` (`TEMPLATES`)**: Pre-configured prompt, schema, and example templates for the HCI Extraction Studio.
 
 ### Data Flow
 
@@ -36,7 +37,7 @@ Services (`GraphExtractor`, `DocAnalyzer`) are lazy-initialized via `get_graph_e
 
 ### Studio Templates
 
-Hardcoded in `app.py` under `TEMPLATES` dict. Adding or modifying a template requires updating the schema, examples, prompt, and default input text in this dictionary.
+Defined in `core/studio_templates.py` under the `TEMPLATES` dict. Adding or modifying a template requires updating the schema, examples, prompt, and default input text in this dictionary.
 
 ### Frontend
 

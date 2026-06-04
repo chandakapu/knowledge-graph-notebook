@@ -1,6 +1,7 @@
 import os
 import json
 import re
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from google import genai
 from google.genai import types
 from pydantic import BaseModel
@@ -27,7 +28,7 @@ class KnowledgeGraph(BaseModel):
 
 # --- Extractor Class ---
 class GraphExtractor:
-    def __init__(self, model_id: str = "gemini-2.5-flash"):
+    def __init__(self, model_id: str = "gemini-2.5-flash", timeout_seconds: int = 60):
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
             raise ValueError(
@@ -36,6 +37,8 @@ class GraphExtractor:
             )
         self.client = genai.Client(api_key=api_key)
         self.model_id = model_id
+        self.timeout_seconds = timeout_seconds
+        self._executor = ThreadPoolExecutor(max_workers=2)
 
     def extract(self, text: str) -> dict:
         """
@@ -83,7 +86,9 @@ Guidelines for Edges (Relationships):
 Ensure output is a valid JSON object matching the requested schema.
 """
         try:
-            response = self.client.models.generate_content(
+            # Use a thread-based timeout to prevent indefinite blocking
+            future = self._executor.submit(
+                self.client.models.generate_content,
                 model=self.model_id,
                 contents=text,
                 config=types.GenerateContentConfig(
@@ -93,7 +98,14 @@ Ensure output is a valid JSON object matching the requested schema.
                     temperature=0.2,
                 ),
             )
+            response = future.result(timeout=self.timeout_seconds)
             print("[Gemini GraphExtractor] Response received successfully.")
+        except FuturesTimeoutError:
+            print(f"[Gemini GraphExtractor] API call timed out after {self.timeout_seconds}s")
+            raise TimeoutError(
+                f"Gemini API call timed out after {self.timeout_seconds} seconds. "
+                "The server may be overloaded. Falling back to local extraction."
+            )
         except Exception as e:
             print(f"[Gemini GraphExtractor] API Call Failed: {e}")
             raise e

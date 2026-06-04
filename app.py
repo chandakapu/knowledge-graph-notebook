@@ -460,6 +460,11 @@ def run_extraction():
         model_id = request_data.get("model_id", "gemini-2.5-flash")
         api_key = request_data.get("api_key") or os.environ.get("LANGEXTRACT_API_KEY") or os.environ.get("GEMINI_API_KEY")
         temperature = request_data.get("temperature")
+        if temperature is not None:
+            try:
+                temperature = max(0.0, min(2.0, float(temperature)))
+            except (TypeError, ValueError):
+                temperature = None
         
         if not text:
             return jsonify({"error": "Please enter a target document first!"}), 400

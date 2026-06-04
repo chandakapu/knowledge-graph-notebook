@@ -13,7 +13,7 @@ A Flask-based web application that provides a neuro-symbolic knowledge mapping w
 - **Semantic Chat** — Ask questions about your knowledge base; the AI answers based on extracted concepts.
 - **Semantic Search** — Search for nodes in the graph by meaning and relationships, not just exact keywords.
 - **PDF Export** — Export a styled PDF summary of your concepts, relationships, and source documents.
-- **Dynamic Fallback** — When the LLM is unavailable or rate-limited, a rule-based fallback extractor still produces useful results.
+- **Dynamic Fallback** — When the LLM is unavailable or rate-limited, a rule-based fallback extractor still produces useful results using sliding-window edge generation for focused, low-noise graphs.
 
 ### 2. HCI Extraction Studio (Visual Web Workbench)
 - **Explainable AI (XAI) & Grounding** — Direct visual mapping linking extracted structured attributes/entities to their exact source text segment with alignment badges (✅ Solid Match, ⚠️ Partial/Overlapping, ❌ Missing).

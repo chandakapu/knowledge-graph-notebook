@@ -80,25 +80,55 @@ class DocAnalyzer:
             raise e
 
         highlights = []
+        occupied_ranges = []  # (start, end) ranges already highlighted
+
         for ext in result.extractions:
             span_text = ext.extraction_text
-            start = text.find(span_text)
-            if start == -1:
-                # Try case-insensitive fallback
-                lower_text = text.lower()
-                lower_span = span_text.lower()
-                start = lower_text.find(lower_span)
 
-            if start != -1:
-                highlights.append(
-                    {
-                        "text": span_text,
-                        "start": start,
-                        "end": start + len(span_text),
-                        "cls": ext.extraction_class,
-                    }
-                )
+            # Find ALL occurrences of the span, with case-insensitive fallback
+            search_targets = [span_text]
+            for target in search_targets:
+                search_text = text
+                offset = 0
+                while True:
+                    start = search_text.find(target, offset)
+                    if start == -1:
+                        # Try case-insensitive on first pass only
+                        if target == span_text:
+                            lower_start = text.lower().find(span_text.lower(), 0)
+                            if lower_start != -1:
+                                end = lower_start + len(span_text)
+                                # Check for overlap with existing highlights
+                                overlap = any(
+                                    not (end <= rs or lower_start >= re)
+                                    for rs, re in occupied_ranges
+                                )
+                                if not overlap:
+                                    occupied_ranges.append((lower_start, end))
+                                    highlights.append({
+                                        "text": span_text,
+                                        "start": lower_start,
+                                        "end": end,
+                                        "cls": ext.extraction_class,
+                                    })
+                        break
 
-        # Sort by start position and deduplicate overlapping spans
+                    end = start + len(target)
+                    # Check for overlap with existing highlights
+                    overlap = any(
+                        not (end <= rs or start >= re)
+                        for rs, re in occupied_ranges
+                    )
+                    if not overlap:
+                        occupied_ranges.append((start, end))
+                        highlights.append({
+                            "text": span_text,
+                            "start": start,
+                            "end": end,
+                            "cls": ext.extraction_class,
+                        })
+                    offset = end
+
+        # Sort by start position for ordered rendering
         highlights.sort(key=lambda h: h["start"])
         return highlights

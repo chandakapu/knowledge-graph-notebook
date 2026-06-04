@@ -150,8 +150,9 @@ def dynamic_fallback_extract(text: str) -> dict:
                     node_set[name_lower]["description"] = desc
                     node_set[name_lower]["type"] = node_type
 
+        WINDOW_SIZE = 3
         for idx in range(len(candidates)):
-            for jdx in range(idx + 1, len(candidates)):
+            for jdx in range(idx + 1, min(idx + WINDOW_SIZE, len(candidates))):
                 c1 = candidates[idx]
                 c2 = candidates[jdx]
                 between = sent[c1["end"]:c2["start"]]

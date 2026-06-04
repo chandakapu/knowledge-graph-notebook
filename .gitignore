@@ -8,3 +8,5 @@ gui_exports/
 .env
 .env.local
 .codegraph/
+test_output.pdf
+*.pdf
