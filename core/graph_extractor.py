@@ -45,19 +45,42 @@ class GraphExtractor:
         print(f"\n[Gemini GraphExtractor] Sending request to Gemini ({self.model_id})...")
         print(f"[Gemini GraphExtractor] Input Text: {text!r}")
         
-        system_prompt = """You are an expert knowledge graph builder.
-Given a piece of text, extract all important concepts, methods, and entities as nodes.
-Then identify the relationships between those nodes as directed edges.
+        system_prompt = """You are an expert knowledge graph construction engine.
+Your goal is to extract a highly accurate, structured, and semantically rich knowledge graph from the given text.
 
-For EACH edge assign a confidence score (float between 0.0 and 1.0) representing
-how strongly the relationship is supported by the text (1.0 = explicitly stated,
-0.5 = implied, 0.2 = weakly related).
+Guidelines for Nodes (Entities):
+1. Identify all core concepts, algorithms, methods, tools, theories, persons, or applications mentioned in the text.
+2. The `name` must be a clean, concise noun phrase in Title Case (e.g., "Backpropagation", "Gradient Descent", "Objective Function"). Never use long sentences, verbs, or pronouns as node names.
+3. Classify each node into one of these strict categories:
+   - `Concept`: Core ideas, abstractions, data representations, or parameters (e.g., "Weights", "Bias", "Activation").
+   - `Method`: Technical procedures, workflows, techniques (e.g., "Supervised Learning", "Data Augmentation").
+   - `Algorithm`: Precise mathematical/computational steps or models (e.g., "Stochastic Gradient Descent", "Neural Network").
+   - `Tool`: Software, libraries, or hardware platforms (e.g., "PyTorch", "NumPy", "GPU").
+   - `Theory`: Mathematical theorems, laws, axioms (e.g., "Bayes' Theorem", "Information Theory").
+   - `Person`: Key historical figures or researchers explicitly named (e.g., "Geoffrey Hinton").
+   - `Application`: Domains or use cases of these technologies (e.g., "Computer Vision", "Natural Language Processing").
+4. Provide a precise, self-contained `description` of the node summarizing its definition, functionality, or context as described in the text.
 
-Node types can be: Concept, Method, Algorithm, Tool, Theory, Person, Application.
-Edge relation types can be: USES, SUBSET_OF, SOLVES, FINDS, MINIMIZES, IMPROVES,
-RELATED_TO, DEFINED_AS, APPLIES_TO, CALCULATES, TRAINS, DEPENDS_ON.
+Guidelines for Edges (Relationships):
+1. Connect nodes only if there is a clear semantic relationship mentioned or implied.
+2. The `source` and `target` fields must match the extracted node `name` EXACTLY (case-sensitive). Do not introduce phantom nodes that are not in the nodes list.
+3. Use specific, uppercase relationship verbs. Preferred verbs include:
+   - `USES` / `IMPLEMENTS`: A method/algorithm utilizes a concept/tool.
+   - `SOLVES` / `MINIMIZES` / `OPTIMIZES`: An algorithm or method solves a problem or optimizes a function (e.g., "Gradient Descent" -> "MINIMIZES" -> "Loss Function").
+   - `PART_OF` / `SUBSET_OF`: Hierarchical relations.
+   - `DEFINES` / `DESCRIBES`: Conceptual relationships.
+   - `APPLIES_TO`: Usage domains.
+   - `CALCULATES`: Math derivation.
+   - `TRAINS`: Training processes.
+   - `DEPENDS_ON`: Direct dependencies.
+   - `INFLUENCES` / `IMPROVES`: Impact relationships.
+4. Assign a realistic `confidence` score (0.0 to 1.0) representing the evidence strength:
+   - `1.0`: Directly and explicitly stated.
+   - `0.8`: Strongly implied or standard textbook knowledge.
+   - `0.5`: Suggested or indirectly referenced.
+   - `0.2`: Speculative or very weak.
 
-Return ONLY valid JSON matching the schema. Do not include markdown code fences.
+Ensure output is a valid JSON object matching the requested schema.
 """
         try:
             response = self.client.models.generate_content(

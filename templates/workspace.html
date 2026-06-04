@@ -215,8 +215,13 @@
         <div class="flex items-center gap-6">
             <div class="relative w-80 group">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">search</span>
-                <input class="w-full bg-surface-container-low border-none focus:ring-2 focus:ring-primary rounded-full pl-10 pr-4 py-2 font-body-md transition-all text-sm" placeholder="Search knowledge..." type="text"/>
+                <input id="workspaceSearchInput" class="w-full bg-surface-container-low border-none focus:ring-2 focus:ring-primary rounded-full pl-10 pr-4 py-2 font-body-md transition-all text-sm" placeholder="Search knowledge (meaning or connections)..." type="text"/>
             </div>
+            <!-- Export PDF Summary button -->
+            <button id="exportPdfBtn" onclick="exportSummaryPdf()" class="bg-primary/10 hover:bg-primary/20 text-primary px-4 py-2 rounded-xl font-label-md text-label-md flex items-center gap-2 transition-all font-semibold border border-primary/20" title="Export structured PDF summary of concepts and connections">
+                <span id="exportPdfIcon" class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                <span id="exportPdfLabel">Export PDF</span>
+            </button>
             <div class="flex items-center gap-3 border-l border-outline-variant pl-6">
                 <button class="w-10 h-10 rounded-full hover:bg-surface-container transition-colors flex items-center justify-center text-on-surface-variant">
                     <span class="material-symbols-outlined">notifications</span>
@@ -312,75 +317,118 @@
     </div>
 </main>
 
-<!-- Thought Stream / LiveChat Panel (Right Sidebar) -->
-<aside class="w-80 border-l border-white/40 bg-white/80 backdrop-blur-md h-screen flex flex-col fixed right-0 top-0 z-40 shadow-[-10px_0_30px_-15px_rgba(129,39,207,0.05)]">
-    <div class="h-20 px-6 flex items-center justify-between border-b border-surface-container flex-shrink-0">
-        <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">forum</span>
-            <h3 class="font-headline-md text-headline-md text-void-black text-[18px] font-bold">LiveChat</h3>
-        </div>
-        <span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">AUTO-SYNC</span>
+<!-- Right Sidebar — AI Chat + Upload Notes -->
+<aside class="w-80 border-l border-white/40 bg-white/80 backdrop-blur-md h-screen flex flex-col fixed right-0 top-0 z-40 shadow-[-10px_0_30px_-15px_rgba(129,39,207,0.08)]">
+
+  <!-- Sidebar Header + Tab Switcher -->
+  <div class="flex-shrink-0 bg-white border-b border-surface-container">
+    <!-- Tabs -->
+    <div class="flex">
+      <button id="panelTabChatBtn" onclick="switchPanelTab('chat')"
+        class="flex-1 h-14 flex items-center justify-center gap-1.5 border-b-2 border-primary text-primary font-label-md text-label-md font-bold transition-all text-[13px]">
+        <span class="material-symbols-outlined text-[16px]" style="font-variation-settings:'FILL' 1">smart_toy</span>
+        AI Chat
+      </button>
+      <button id="panelTabUploadBtn" onclick="switchPanelTab('upload')"
+        class="flex-1 h-14 flex items-center justify-center gap-1.5 border-b-2 border-transparent text-on-surface-variant hover:text-primary font-label-md text-label-md font-semibold transition-all text-[13px]">
+        <span class="material-symbols-outlined text-[16px]">upload_file</span>
+        Upload Notes
+      </button>
     </div>
-    
-    <!-- Message History -->
-    <div class="flex-grow overflow-y-auto p-6 space-y-6 no-scrollbar" id="chatHistory">
-        <!-- Welcome Bubble -->
-        <div class="flex gap-3">
-            <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <span class="material-symbols-outlined text-primary text-sm">auto_awesome</span>
-            </div>
-            <div class="bg-surface-container-low p-4 rounded-2xl rounded-tl-none text-body-md text-[14px] shadow-sm text-on-surface flex-grow">
-                <p class="text-primary font-bold mb-1">GraphFlow Assistant</p>
-                <p class="leading-relaxed text-[13px]">Hello! Share your notes or observations here. I'll automatically extract entities and relationships to build your knowledge graph in real-time.</p>
-            </div>
+  </div>
+
+  <!-- ══════════════════════ PANEL 1: AI CHAT ══════════════════════ -->
+  <div id="panelChat" class="flex flex-col flex-grow overflow-hidden">
+
+    <!-- Chat History -->
+    <div class="flex-grow overflow-y-auto p-5 space-y-5 no-scrollbar" id="chatHistory">
+      <!-- Welcome bubble -->
+      <div class="flex gap-3">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-electric-purple flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/20">
+          <span class="material-symbols-outlined text-white text-sm" style="font-variation-settings:'FILL' 1">smart_toy</span>
         </div>
+        <div class="bg-surface-container-low p-4 rounded-2xl rounded-tl-none text-[13px] shadow-sm text-on-surface flex-grow border border-surface-container">
+          <p class="text-primary font-bold mb-1.5 text-[12px] uppercase tracking-wider">AetherGraph AI</p>
+          <p class="leading-relaxed">Hello! Ask me anything. I'll use your knowledge graph to answer — and fill in gaps from my own knowledge when needed.</p>
+        </div>
+      </div>
     </div>
 
-    <!-- Collaborative User Avatars overlay (Styled to match Figma) -->
-    <div class="px-6 py-3 border-t border-surface-container bg-white/40 flex-shrink-0">
-        <p class="font-label-sm text-[10px] text-on-surface-variant mb-2 uppercase tracking-tighter font-semibold">Active in Session</p>
-        <div class="flex items-center justify-between">
-            <div class="flex -space-x-2">
-                <img alt="User avatar" class="w-8 h-8 rounded-full border-2 border-white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuARZ-Zx3XRFo1ZLLGzzFNT2upfYYEW_ezT64LWJuPvPN5ec7up4mrWTeGtGdqEcoiUi9YT0FAtTz_20MtI8KYNgegPcZxwL2tu_JxqluUOf7O8nB3CileJFqu0L2sBe-Jggr1NEsApSkRKfC2Ie9FJoSzYgB-8iQTIBxuwk6jA84cFNU62TlPhx_Blx97ybPbKc-qE8yXNEjzOUkVuvgh5ZhycwKBryku0EgJMwFeTCwV-ViPDGUbo8VB2Aj_QoPnfHbCaKocPOT-A"/>
-                <img alt="User avatar" class="w-8 h-8 rounded-full border-2 border-white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBz69q8WBnHVIuWDi696YnIMCDUzKL5CYUkkeE38a6emkNtAQbM_B5Qh2XFMXvjocSSe8OYRDvYPudH5HEfEU3aCitqV7SXOOz02XWiYX5m7JuTV3WBNK1x0IGsdUMeOZ0FYmcke-3UxbTAkRf85cC255nKCpII_xPCVjLNj6v_V9cwfRGC2KOrVXUrRo_ycTAdVUAjk-olZl_zFixxzGwD6_blq5_U8GZV_J7tv_80v0vydTkX0n4HR-Q7mkMu9LddLBnTe6t-_HU"/>
-                <div class="w-8 h-8 rounded-full border-2 border-white bg-surface-container-highest flex items-center justify-center text-[10px] font-bold text-on-surface-variant">+2</div>
-            </div>
-            <span class="w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-white animate-pulse" title="System synced"></span>
-        </div>
+    <!-- Chat Input -->
+    <div class="flex-shrink-0 border-t border-surface-container bg-white/60 p-4">
+      <!-- Context badge (shows how many nodes are in graph) -->
+      <div id="chatContextBadge" class="flex items-center gap-2 mb-3 px-3 py-1.5 bg-primary/5 border border-primary/15 rounded-xl">
+        <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse flex-shrink-0"></span>
+        <span class="text-[11px] text-primary font-semibold flex-grow">Graph context: <span id="chatContextCount">0</span> nodes</span>
+        <span class="material-symbols-outlined text-primary text-[14px]">hub</span>
+      </div>
+      <div class="relative">
+        <textarea id="chatInput"
+          class="w-full bg-surface-container-low border border-surface-container focus:ring-1 focus:ring-primary focus:border-primary rounded-xl p-3 pr-12 text-[13px] resize-none no-scrollbar placeholder:text-on-surface-variant/60 transition-all"
+          placeholder="Ask something about your notes…" rows="3"></textarea>
+        <div id="chatSpinner" style="display:none;"
+          class="absolute bottom-3 right-11 w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <button id="chatSendBtn" onclick="sendChatMessage()"
+          class="absolute right-2 bottom-2 w-8 h-8 bg-primary text-white rounded-lg flex items-center justify-center hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-95">
+          <span class="material-symbols-outlined text-[16px]">send</span>
+        </button>
+      </div>
+      <p class="text-[10px] text-on-surface-variant/50 mt-2 text-center uppercase tracking-wider">Powered by AetherGraph AI • Graph-aware</p>
     </div>
-    
-    <!-- Input Section -->
-    <div class="p-6 border-t border-surface-container bg-white/50 flex-shrink-0">
-        <!-- File Chip Container -->
-        <div id="fileAttachmentContainer" class="hidden flex items-center gap-2 mb-3 px-3 py-2 bg-surface-container-low border border-outline-variant/30 rounded-xl text-xs">
-            <span class="material-symbols-outlined text-primary text-[18px]">description</span>
-            <div class="flex-grow min-w-0">
-                <div id="attachedFileName" class="text-void-black font-semibold truncate">file.pdf</div>
-                <div id="attachedFileSize" class="text-on-surface-variant text-[10px]">(0 KB)</div>
-            </div>
-            <button onclick="removeAttachment()" class="material-symbols-outlined text-on-surface-variant hover:text-error text-[18px] ml-auto transition-colors">close</button>
+  </div>
+
+  <!-- ══════════════════════ PANEL 2: UPLOAD NOTES ══════════════════════ -->
+  <div id="panelUpload" class="flex flex-col flex-grow overflow-hidden" style="display:none;">
+
+    <!-- Note History (shows analyzed entries) -->
+    <div class="flex-grow overflow-y-auto p-5 space-y-4 no-scrollbar" id="noteHistory">
+      <!-- Placeholder -->
+      <div id="noteHistoryEmpty" class="flex flex-col items-center justify-center h-full gap-3 text-center py-10">
+        <div class="w-14 h-14 rounded-2xl bg-surface-container flex items-center justify-center">
+          <span class="material-symbols-outlined text-on-surface-variant text-3xl">upload_file</span>
         </div>
-        
-        <div class="relative">
-            <textarea id="noteInput" class="w-full bg-surface-container-low border-none focus:ring-1 focus:ring-primary rounded-xl p-3 pr-12 text-body-md text-[14px] resize-none no-scrollbar placeholder:text-on-surface-variant" placeholder="Type a note or message team..." rows="3"></textarea>
-            <div id="spinner" style="display:none;" class="absolute bottom-3 right-12 w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-            <button id="sendBtn" onclick="sendNote()" class="absolute right-2 bottom-2 w-8 h-8 bg-primary text-white rounded-lg flex items-center justify-center hover:bg-primary-container transition-colors shadow-lg shadow-primary/20">
-                <span class="material-symbols-outlined text-[18px]">send</span>
-            </button>
-        </div>
-        
-        <div class="flex justify-between items-center mt-3 text-on-surface-variant">
-            <div class="flex gap-2">
-                <input type="file" id="filePicker" class="hidden" accept=".txt,.md,.pdf,.csv,.json" onchange="handleFileSelected(event)">
-                <button onclick="document.getElementById('filePicker').click()" class="hover:text-primary transition-colors flex items-center justify-center" title="Upload file (.txt, .pdf, .md, .csv, .json)">
-                    <span class="material-symbols-outlined text-[20px]">attach_file</span>
-                </button>
-                <button class="hover:text-primary transition-colors flex items-center justify-center"><span class="material-symbols-outlined text-[20px]">mood</span></button>
-                <button class="hover:text-primary transition-colors flex items-center justify-center"><span class="material-symbols-outlined text-[20px]">alternate_email</span></button>
-            </div>
-            <span class="text-[10px] text-on-surface-variant/60 uppercase tracking-wider font-bold">Ready</span>
-        </div>
+        <p class="text-[13px] text-on-surface-variant leading-relaxed">Upload a file or paste notes.<br>I'll extract concepts and build the graph.</p>
+      </div>
     </div>
+
+    <!-- Upload Input -->
+    <div class="flex-shrink-0 border-t border-surface-container bg-white/60 p-4 space-y-3">
+      <!-- File Chip -->
+      <div id="fileAttachmentContainer" class="hidden items-center gap-2 px-3 py-2 bg-primary/5 border border-primary/20 rounded-xl text-xs">
+        <span class="material-symbols-outlined text-primary text-[18px]">description</span>
+        <div class="flex-grow min-w-0">
+          <div id="attachedFileName" class="text-void-black font-semibold truncate">file.pdf</div>
+          <div id="attachedFileSize" class="text-on-surface-variant text-[10px]">(0 KB)</div>
+        </div>
+        <button onclick="removeAttachment()" class="material-symbols-outlined text-on-surface-variant hover:text-error text-[18px] ml-auto transition-colors">close</button>
+      </div>
+
+      <!-- Textarea + Send -->
+      <div class="relative">
+        <textarea id="noteInput"
+          class="w-full bg-surface-container-low border border-surface-container focus:ring-1 focus:ring-primary focus:border-primary rounded-xl p-3 pr-12 text-[13px] resize-none no-scrollbar placeholder:text-on-surface-variant/60 transition-all"
+          placeholder="Paste notes or observations…" rows="3"></textarea>
+        <div id="spinner" style="display:none;"
+          class="absolute bottom-3 right-11 w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <button id="sendBtn" onclick="sendNote()"
+          class="absolute right-2 bottom-2 w-8 h-8 bg-primary text-white rounded-lg flex items-center justify-center hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-95">
+          <span class="material-symbols-outlined text-[16px]">send</span>
+        </button>
+      </div>
+
+      <!-- File Upload Row -->
+      <div class="flex items-center gap-3">
+        <input type="file" id="filePicker" class="hidden" accept=".txt,.md,.pdf,.csv,.json" onchange="handleFileSelected(event)">
+        <button onclick="document.getElementById('filePicker').click()"
+          class="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-surface-container-low border border-outline-variant/40 rounded-xl text-[12px] text-on-surface-variant hover:text-primary hover:border-primary/30 hover:bg-primary/5 transition-all font-semibold">
+          <span class="material-symbols-outlined text-[16px]">attach_file</span>
+          Upload File
+        </button>
+        <span class="text-[10px] text-on-surface-variant/50 uppercase tracking-wider">.txt .pdf .md</span>
+      </div>
+    </div>
+  </div>
+
 </aside>
 
 <script>
@@ -453,8 +501,170 @@
   }
   
   function updateStats() {
-    document.getElementById('statNodes').innerText = globalNodes.length;
+    const n = globalNodes.length;
+    document.getElementById('statNodes').innerText = n;
     document.getElementById('statEdges').innerText = globalEdges.length;
+    // Keep chat context badge up-to-date
+    const badge = document.getElementById('chatContextCount');
+    if (badge) badge.innerText = n;
+  }
+
+  // ── Panel tab switching ───────────────────────────────────────────────────
+  function switchPanelTab(tab) {
+    const chatBtn    = document.getElementById('panelTabChatBtn');
+    const uploadBtn  = document.getElementById('panelTabUploadBtn');
+    const chatPanel  = document.getElementById('panelChat');
+    const uploadPanel= document.getElementById('panelUpload');
+
+    const activeClass   = 'flex-1 h-14 flex items-center justify-center gap-1.5 border-b-2 border-primary text-primary font-label-md text-label-md font-bold transition-all text-[13px]';
+    const inactiveClass = 'flex-1 h-14 flex items-center justify-center gap-1.5 border-b-2 border-transparent text-on-surface-variant hover:text-primary font-label-md text-label-md font-semibold transition-all text-[13px]';
+
+    if (tab === 'chat') {
+      chatBtn.className    = activeClass;
+      uploadBtn.className  = inactiveClass;
+      chatPanel.style.display  = '';
+      uploadPanel.style.display = 'none';
+    } else {
+      uploadBtn.className  = activeClass;
+      chatBtn.className    = inactiveClass;
+      chatPanel.style.display  = 'none';
+      uploadPanel.style.display = '';
+    }
+  }
+
+  // ── AI Chat: ask a question powered by the knowledge graph ───────────────
+  async function sendChatMessage() {
+    const input = document.getElementById('chatInput');
+    const question = (input.value || '').trim();
+    if (!question) return;
+
+    input.value = '';
+    const history = document.getElementById('chatHistory');
+
+    // User bubble
+    const userHtml = `
+      <div class="flex flex-col items-end gap-1">
+        <span class="text-[10px] text-on-surface-variant mr-1">Just now</span>
+        <div class="bg-primary text-white px-4 py-3 rounded-2xl rounded-tr-none text-[13px] shadow-md shadow-primary/10 max-w-[90%] leading-relaxed">
+          ${escapeHtml(question)}
+        </div>
+      </div>`;
+    history.insertAdjacentHTML('beforeend', userHtml);
+    history.scrollTop = history.scrollHeight;
+
+    // Thinking bubble
+    const thinkId = 'think-' + Date.now();
+    const thinkHtml = `
+      <div class="flex gap-3" id="${thinkId}">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-electric-purple flex items-center justify-center flex-shrink-0 shadow shadow-primary/20">
+          <span class="material-symbols-outlined text-white text-sm animate-pulse" style="font-variation-settings:'FILL' 1">smart_toy</span>
+        </div>
+        <div class="bg-surface-container-low border border-surface-container px-4 py-3 rounded-2xl rounded-tl-none text-[13px] text-on-surface-variant shadow-sm flex items-center gap-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-primary animate-bounce"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style="animation-delay:0.15s"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style="animation-delay:0.3s"></span>
+        </div>
+      </div>`;
+    history.insertAdjacentHTML('beforeend', thinkHtml);
+    history.scrollTop = history.scrollHeight;
+
+    document.getElementById('chatSpinner').style.display = 'block';
+    document.getElementById('chatSendBtn').disabled = true;
+    document.getElementById('chatInput').disabled = true;
+
+    // Collect graph context
+    const nodes = [];
+    globalNodes.forEach(n => nodes.push({ name: n.label, type: n.nodeType, description: n.description }));
+    const edges = [];
+    globalEdges.forEach(e => {
+      const s = globalNodes.get(e.from);
+      const t = globalNodes.get(e.to);
+      edges.push({ source: s ? s.label : e.from, relation: e.label, target: t ? t.label : e.to });
+    });
+
+    try {
+      const resp = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question, nodes, edges })
+      });
+      const data = await resp.json();
+
+      // Remove thinking bubble
+      document.getElementById(thinkId)?.remove();
+
+      const answer = data.answer || 'Sorry, I could not generate a response.';
+      const relatedNodes = data.related_nodes || [];
+
+      // Format markdown-ish bold (**text**)
+      const formatted = answer
+        .replace(/\*\*(.+?)\*\*/g, '<span class="font-bold text-primary">$1</span>')
+        .replace(/\n/g, '<br>');
+
+      // Related nodes chips
+      const chipsHtml = relatedNodes.length
+        ? `<div class="flex flex-wrap gap-1 mt-2 pt-2 border-t border-surface-container">
+            ${relatedNodes.slice(0,5).map(n => `<span class="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded-full">${escapeHtml(n)}</span>`).join('')}
+           </div>`
+        : '';
+
+      const answerHtml = `
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-electric-purple flex items-center justify-center flex-shrink-0 shadow shadow-primary/20">
+            <span class="material-symbols-outlined text-white text-sm" style="font-variation-settings:'FILL' 1">smart_toy</span>
+          </div>
+          <div class="bg-surface-container-low border border-surface-container p-4 rounded-2xl rounded-tl-none text-[13px] shadow-sm text-on-surface flex-grow">
+            <p class="text-primary font-bold mb-2 text-[11px] uppercase tracking-wider">AetherGraph AI</p>
+            <p class="leading-relaxed">${formatted}</p>
+            ${chipsHtml}
+          </div>
+        </div>`;
+      history.insertAdjacentHTML('beforeend', answerHtml);
+
+    } catch (err) {
+      document.getElementById(thinkId)?.remove();
+      console.error('[chat]', err);
+      history.insertAdjacentHTML('beforeend', `
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-xl bg-error/10 flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined text-error text-sm">error</span>
+          </div>
+          <div class="bg-error/5 border border-error/20 px-4 py-3 rounded-2xl text-[13px] text-error">
+            Failed to get a response. Check your connection.
+          </div>
+        </div>`);
+    } finally {
+      document.getElementById('chatSpinner').style.display = 'none';
+      document.getElementById('chatSendBtn').disabled = false;
+      document.getElementById('chatInput').disabled = false;
+      document.getElementById('chatInput').focus();
+      history.scrollTop = history.scrollHeight;
+    }
+  }
+
+  // ── Upload Notes: add a history entry after analysis ─────────────────────
+  function addNoteHistoryEntry(filename, size, timestamp, newNodes, newEdges) {
+    const empty = document.getElementById('noteHistoryEmpty');
+    if (empty) empty.style.display = 'none';
+
+    const container = document.getElementById('noteHistory');
+    const entryHtml = `
+      <div class="bg-surface-container-low border border-surface-container rounded-2xl p-3 space-y-2">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-[16px]">${filename.endsWith('.pdf') ? 'picture_as_pdf' : 'description'}</span>
+          <div class="flex-grow min-w-0">
+            <p class="text-[12px] font-bold text-void-black truncate">${escapeHtml(filename)}</p>
+            <p class="text-[10px] text-on-surface-variant">${timestamp} · ${size}</p>
+          </div>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded-full">+${newNodes} nodes</span>
+          <span class="px-2 py-0.5 bg-secondary-container/20 text-secondary-container text-[10px] font-bold rounded-full">+${newEdges} edges</span>
+          <span class="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded-full">Analyzed ✓</span>
+        </div>
+      </div>`;
+    container.insertAdjacentHTML('beforeend', entryHtml);
+    container.scrollTop = container.scrollHeight;
   }
 
   function escapeHtml(str) {
@@ -709,6 +919,9 @@
       activeDocId = docId;
       renderDocList();
       selectDoc(docId);
+
+      // Record in Upload Notes panel history
+      addNoteHistoryEntry(newDocObj.filename, newDocObj.size, newDocObj.timestamp, newNodesCount, newEdgesCount);
       
       // Add system response bubble
       if (newNodesCount > 0 || newEdgesCount > 0) {
@@ -836,6 +1049,171 @@
       sendNote();
     }
   });
+
+  document.getElementById('chatInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendChatMessage();
+    }
+  });
+
+  document.getElementById('workspaceSearchInput').addEventListener('keydown', async e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const query = e.target.value.trim();
+      if (!query) return;
+
+      // Collect all current nodes to send as context for semantic search
+      const nodes = [];
+      globalNodes.forEach(n => {
+        nodes.push({
+          id: n.id,
+          name: n.label,
+          type: n.nodeType,
+          description: n.description
+        });
+      });
+
+      if (nodes.length === 0) return;
+
+      try {
+        const resp = await fetch('/api/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query, nodes })
+        });
+        const data = await resp.json();
+        const matches = data.matched_nodes || [];
+
+        if (matches.length > 0) {
+          const matchName = matches[0];
+          // Find vis.js node ID by label (which is the node name)
+          let targetNodeId = null;
+          globalNodes.forEach(n => {
+            if (n.label && n.label.toLowerCase() === matchName.toLowerCase()) {
+              targetNodeId = n.id;
+            }
+          });
+
+          if (targetNodeId && networkInstance) {
+            // Focus and highlight the node
+            networkInstance.focus(targetNodeId, {
+              scale: 1.3,
+              animation: {
+                duration: 1000,
+                easingFunction: 'easeInOutQuad'
+              }
+            });
+            networkInstance.selectNodes([targetNodeId]);
+            openInspector(globalNodes.get(targetNodeId));
+            
+            // Temporary flash border or show visual search feedback
+            e.target.classList.add('ring-2', 'ring-green-500');
+            setTimeout(() => {
+              e.target.classList.remove('ring-2', 'ring-green-500');
+            }, 1500);
+          } else {
+            alert(`Concept found: "${matchName}", but it could not be located in the current graph view.`);
+          }
+        } else {
+          e.target.classList.add('ring-2', 'ring-red-500');
+          setTimeout(() => {
+            e.target.classList.remove('ring-2', 'ring-red-500');
+          }, 1500);
+          console.log("No semantic matches found for search query.");
+        }
+      } catch (err) {
+        console.error("Semantic search error:", err);
+      }
+    }
+  });
+
+  async function exportSummaryPdf() {
+    const btn = document.getElementById('exportPdfBtn');
+    const icon = document.getElementById('exportPdfIcon');
+    const label = document.getElementById('exportPdfLabel');
+
+    // Set loading state
+    if (btn) btn.disabled = true;
+    if (icon) icon.textContent = 'hourglass_top';
+    if (label) label.textContent = 'Generating…';
+    const nodes = [];
+    globalNodes.forEach(n => {
+      nodes.push({
+        name: n.label,
+        type: n.nodeType,
+        description: n.description
+      });
+    });
+
+    const edges = [];
+    globalEdges.forEach(e => {
+      const srcNode = globalNodes.get(e.from);
+      const tgtNode = globalNodes.get(e.to);
+      edges.push({
+        source: srcNode ? srcNode.label : e.from,
+        target: tgtNode ? tgtNode.label : e.to,
+        relation: e.label,
+        confidence: e.title ? (e.title.match(/[\d\.]+/) ? parseFloat(e.title.match(/[\d\.]+/)[0]) : 0.5) : 0.5
+      });
+    });
+
+    const docs = uploadedDocs.map(d => ({
+      filename: d.filename,
+      timestamp: d.timestamp,
+      size: d.size
+    }));
+
+    const resetBtn = () => {
+      if (btn) btn.disabled = false;
+      if (icon) icon.textContent = 'picture_as_pdf';
+      if (label) label.textContent = 'Export PDF';
+    };
+
+    if (nodes.length === 0) {
+      resetBtn();
+      alert("No concepts in the workspace to export. Add some notes or upload documents first!");
+      return;
+    }
+
+    try {
+      const resp = await fetch('/api/export-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nodes, edges, documents: docs })
+      });
+
+      if (!resp.ok) {
+        // Try to parse error as JSON; fall back to plain text
+        let errMsg = `Server error (${resp.status})`;
+        try {
+          const errData = await resp.json();
+          errMsg = errData.error || errMsg;
+        } catch (_) {
+          const errText = await resp.text().catch(() => '');
+          if (errText) errMsg += ': ' + errText.substring(0, 300);
+        }
+        console.error('[exportSummaryPdf] Server error:', errMsg);
+        alert('PDF Export failed: ' + errMsg);
+        return;
+      }
+
+      const blob = await resp.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'AetherGraph_Summary.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('[exportSummaryPdf] Fetch/generation error:', err);
+      alert('An error occurred during PDF generation: ' + (err.message || err));
+    } finally {
+      resetBtn();
+    }
+  }
 
   window.onload = () => {
     initGraph();
