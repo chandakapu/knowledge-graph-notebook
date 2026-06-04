@@ -298,8 +298,24 @@ def get_doc_analyzer() -> DocAnalyzer:
 # --------------------------------------------------------------------------- #
 
 @app.route("/")
-def index():
-    return render_template("index.html")
+@app.route("/home")
+def home():
+    return render_template("home.html")
+
+
+@app.route("/workspace")
+def workspace():
+    return render_template("workspace.html")
+
+
+@app.route("/features")
+def features():
+    return render_template("features.html")
+
+
+@app.route("/pricing")
+def pricing():
+    return render_template("pricing.html")
 
 
 @app.route("/api/upload", methods=["POST"])
