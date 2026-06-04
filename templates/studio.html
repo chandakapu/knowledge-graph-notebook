@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>langextract | HCI Extraction Studio</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Geist:wght@400;500&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="/static/studio.css">
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+              "primary": "#8127cf",
+              "void-black": "#000000",
+              "secondary-container": "#346bf1",
+              "background": "#f9f9ff",
+              "surface-tint": "#842bd2",
+              "secondary-fixed": "#dbe1ff",
+              "surface-container-lowest": "#ffffff",
+              "inverse-primary": "#ddb7ff",
+              "velocity-blue": "#346BF1",
+              "error": "#ba1a1a",
+              "tertiary": "#7b5500",
+              "on-surface": "#181c22",
+              "inverse-on-surface": "#eef0fa",
+              "on-secondary-fixed-variant": "#003da9",
+              "surface-dim": "#d8dae3",
+              "on-tertiary-fixed-variant": "#604100",
+              "on-tertiary-container": "#fffbff",
+              "primary-container": "#9c48ea",
+              "tertiary-container": "#9b6b00",
+              "surface": "#f9f9ff",
+              "tertiary-fixed": "#ffdead",
+              "on-primary-fixed": "#2c0051",
+              "secondary": "#0050d7",
+              "on-surface-variant": "#4d4354",
+              "on-primary-container": "#fffbff",
+              "on-tertiary": "#ffffff",
+              "on-secondary-container": "#fefcff",
+              "on-background": "#181c22",
+              "surface-bright": "#f9f9ff",
+              "electric-purple": "#A855F7",
+              "primary-fixed": "#f0dbff",
+              "on-primary": "#ffffff",
+              "on-secondary-fixed": "#00174b",
+              "primary-fixed-dim": "#ddb7ff",
+              "on-secondary": "#ffffff",
+              "secondary-fixed-dim": "#b4c5ff",
+              "surface-container": "#ecedf7",
+              "tertiary-fixed-dim": "#fabc4e",
+              "on-tertiary-fixed": "#281900",
+              "on-error": "#ffffff",
+              "outline": "#7e7385",
+              "gravity-red": "#FF4641",
+              "surface-container-highest": "#e0e2eb",
+              "surface-container-low": "#f1f3fd",
+              "surface-container-high": "#e6e8f1",
+              "inverse-surface": "#2d3037",
+              "on-error-container": "#93000a",
+              "surface-variant": "#e0e2eb",
+              "outline-variant": "#cfc2d6",
+              "on-primary-fixed-variant": "#6900b3"
+            },
+            "borderRadius": {
+              "DEFAULT": "0.25rem",
+              "lg": "0.5rem",
+              "xl": "0.75rem",
+              "full": "9999px"
+            },
+            "fontFamily": {
+              "body-md": ["Inter"],
+              "label-md": ["Geist"],
+              "headline-lg": ["Inter"],
+              "headline-md": ["Inter"],
+              "body-lg": ["Inter"],
+              "label-sm": ["Geist"],
+              "display-lg": ["Inter"]
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen overflow-hidden flex">
+
+<!-- SideNavBar (Left Sidebar) -->
+<aside class="fixed left-0 top-0 h-full flex flex-col py-6 px-4 z-40 bg-white border-r border-white/40 shadow-lg shadow-primary/5 w-64">
+    <div class="mb-10 px-2 flex items-center gap-3">
+        <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">hub</span>
+        </div>
+        <div>
+            <h1 class="text-body-lg font-headline-md text-primary font-bold">langextract</h1>
+            <p class="font-label-sm text-label-sm text-on-surface-variant">Active Workspace</p>
+        </div>
+    </div>
+    
+    <nav class="flex-1 space-y-1">
+        <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low rounded-xl transition-all duration-300" href="/workspace">
+            <span class="material-symbols-outlined">account_tree</span>
+            <span class="font-label-md text-label-md">Workspace</span>
+        </a>
+        <a class="flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary rounded-xl transition-all duration-300 translate-x-1" href="/studio">
+            <span class="material-symbols-outlined">data_object</span>
+            <span class="font-label-md text-label-md">HCI Studio</span>
+        </a>
+        <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low rounded-xl transition-all duration-300" href="/home">
+            <span class="material-symbols-outlined">home</span>
+            <span class="font-label-md text-label-md">Home Page</span>
+        </a>
+        <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low rounded-xl transition-all duration-300" href="/features">
+            <span class="material-symbols-outlined">psychology</span>
+            <span class="font-label-md text-label-md">Features</span>
+        </a>
+        <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low rounded-xl transition-all duration-300" href="/pricing">
+            <span class="material-symbols-outlined">payments</span>
+            <span class="font-label-md text-label-md">Pricing</span>
+        </a>
+        <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low rounded-xl transition-all duration-300" href="/pricing#about">
+            <span class="material-symbols-outlined">info</span>
+            <span class="font-label-md text-label-md">About</span>
+        </a>
+    </nav>
+    <div class="pt-6 border-t border-surface-container space-y-1">
+        <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low rounded-xl transition-all duration-300" href="#">
+            <span class="material-symbols-outlined">help</span>
+            <span class="font-label-md text-label-md">Help</span>
+        </a>
+    </div>
+</aside>
+
+<!-- Main Viewport (Reserves space on the left for permanent SideNavBar) -->
+<main class="ml-64 flex-grow flex flex-col h-screen relative bg-surface overflow-hidden">
+    <!-- TopNavBar -->
+    <header class="h-20 px-8 flex items-center justify-between bg-white border-b border-surface-container flex-shrink-0">
+        <div class="flex items-center gap-4">
+            <h2 class="font-headline-md text-headline-md text-void-black font-bold">HCI Extraction Studio</h2>
+            <div class="h-6 w-px bg-outline-variant mx-2"></div>
+            <div class="flex items-center gap-2 text-on-surface-variant">
+                <span class="material-symbols-outlined text-[20px]">verified_user</span>
+                <span class="font-label-sm text-label-sm">Human-in-the-Loop Studio</span>
+            </div>
+        </div>
+        
+        <!-- Header Actions: Run, Save, Undo, Redo -->
+        <div class="flex items-center gap-4">
+            <div class="flex items-center bg-surface-container-low border border-surface-container-high rounded-xl p-1 gap-1">
+                <button id="btn-undo" class="w-10 h-10 hover:bg-white text-on-surface-variant rounded-lg flex items-center justify-center transition-all disabled:opacity-40 disabled:hover:bg-transparent" title="Undo last action (Ctrl+Z)" aria-label="Undo" disabled>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                </button>
+                <button id="btn-redo" class="w-10 h-10 hover:bg-white text-on-surface-variant rounded-lg flex items-center justify-center transition-all disabled:opacity-40 disabled:hover:bg-transparent" title="Redo last action (Ctrl+Shift+Z)" aria-label="Redo" disabled>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"></path></svg>
+                </button>
+            </div>
+            
+            <button id="btn-run" class="bg-primary hover:bg-primary-container text-white px-5 py-2.5 rounded-xl font-label-md text-label-md flex items-center gap-2 transition-all font-semibold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95" aria-label="Run Extraction">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                Run Extraction
+            </button>
+            
+            <button id="btn-save" class="bg-white hover:bg-surface-container border border-outline-variant/60 text-on-surface px-5 py-2.5 rounded-xl font-label-md text-label-md flex items-center gap-2 transition-all font-semibold hover:scale-105 active:scale-95" title="Export annotations to JSONL (Ctrl+S)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                Export JSONL
+            </button>
+        </div>
+    </header>
+
+    <!-- Visual Workbench Split Workspace -->
+    <div class="flex-grow flex overflow-hidden">
+        
+        <!-- Sidebar config panel: Templates, Schema builder, parameters -->
+        <aside class="w-80 border-r border-surface-container bg-white flex flex-col overflow-y-auto p-5 space-y-6 flex-shrink-0 no-scrollbar">
+            
+            <!-- Section 1: Template Selection -->
+            <div class="space-y-2 pb-4 border-b border-dashed border-surface-container-high">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xs uppercase tracking-wider text-on-surface-variant font-bold">Task Template</h3>
+                    <span class="hci-badge" title="Recognition over Recall: Preconfigured standard task guide templates to minimize user cognitive overhead.">HCI</span>
+                </div>
+                <select id="select-template" class="w-full studio-select rounded-xl border border-outline-variant focus:border-primary">
+                    <option value="">-- Choose Template --</option>
+                </select>
+            </div>
+
+            <!-- Section 2: LLM Configuration -->
+            <div class="space-y-3 pb-4 border-b border-dashed border-surface-container-high">
+                <h3 class="text-xs uppercase tracking-wider text-on-surface-variant font-bold">LLM Settings</h3>
+                <div class="space-y-2">
+                    <label for="select-model" class="text-xs font-semibold text-on-surface-variant">Model ID</label>
+                    <select id="select-model" class="w-full studio-select rounded-xl border border-outline-variant focus:border-primary">
+                        <option value="gemini-3.1-flash-lite" selected>Gemini 3.1 Flash Lite (Default)</option>
+                        <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                        <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+                    </select>
+                </div>
+                <div class="space-y-1.5 pt-1">
+                    <label for="input-api-key" class="text-xs font-semibold text-on-surface-variant">Gemini API Key</label>
+                    <input type="password" id="input-api-key" placeholder="Enter API Key" autocomplete="current-password" class="w-full studio-input rounded-xl border border-outline-variant focus:border-primary">
+                    <span class="model-badge block mt-1 text-[10px]">Saved in browser session</span>
+                </div>
+            </div>
+
+            <!-- Section 3: Prompt instructions editor -->
+            <div class="space-y-2 pb-4 border-b border-dashed border-surface-container-high">
+                <h3 class="text-xs uppercase tracking-wider text-on-surface-variant font-bold">Extraction Instructions</h3>
+                <textarea id="textarea-prompt" rows="4" placeholder="Define rules for what entities and characteristics the model should extract..." class="w-full studio-textarea rounded-xl border border-outline-variant focus:border-primary text-xs leading-relaxed" style="resize:vertical;"></textarea>
+            </div>
+
+            <!-- Section 4: Visual Schema Builder -->
+            <div class="space-y-3 pb-4 border-b border-dashed border-surface-container-high">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xs uppercase tracking-wider text-on-surface-variant font-bold">Extraction Classes</h3>
+                    <span class="hci-badge" title="Dual-Coding Theory: Direct correlation between color tags and text boundaries for faster visual scanning.">HCI</span>
+                </div>
+                <div class="schema-list" id="schema-classes-list">
+                    <!-- Loaded dynamically -->
+                </div>
+                <div class="add-class-box flex gap-2">
+                    <input type="text" id="input-new-class" placeholder="e.g., entity" class="flex-grow studio-input rounded-xl border border-outline-variant text-xs focus:border-primary">
+                    <button id="btn-add-class" class="bg-primary/10 text-primary px-3 py-1.5 text-xs rounded-xl hover:bg-primary/20 transition-all font-semibold">Add</button>
+                </div>
+            </div>
+
+            <!-- Section 5: Action History (Undo/Redo Log) -->
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xs uppercase tracking-wider text-on-surface-variant font-bold">Action History</h3>
+                    <span class="hci-badge" title="Error Prevention & Recovery: Allows safe correction, rollback, and restoration of all user annotation edits.">HCI</span>
+                </div>
+                <div class="history-actions flex gap-2">
+                    <button id="btn-undo-sidebar" class="flex-grow btn-workbench btn-workbench-sm flex items-center justify-center gap-1" disabled aria-label="Undo last action">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                        Undo
+                    </button>
+                    <button id="btn-redo-sidebar" class="flex-grow btn-workbench btn-workbench-sm flex items-center justify-center gap-1" disabled aria-label="Redo last action">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"></path></svg>
+                        Redo
+                    </button>
+                </div>
+                <div id="history-list" class="history-list mt-2 space-y-1 max-h-36 overflow-y-auto" aria-live="polite">
+                    <div class="history-empty text-xs text-center py-2 text-on-surface-variant/40 italic">No actions recorded yet</div>
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- Center Workspace: Raw Text Input and Grounded Span Highlights -->
+        <section class="flex-1 flex flex-col overflow-hidden bg-white border-r border-surface-container relative">
+            <div class="px-6 py-4 border-b border-surface-container flex items-center justify-between flex-shrink-0 bg-white">
+                <div class="flex items-center gap-2">
+                    <h3 class="text-sm font-bold text-void-black">Document & Grounding Spans</h3>
+                    <span class="hci-badge" title="Human-in-the-Loop Agency: Highlight any raw text selection in the viewer to instantly classify or override LLM labels.">HCI</span>
+                </div>
+                <span id="doc-id-badge" class="text-xs font-semibold font-mono text-on-surface-variant"></span>
+            </div>
+            
+            <div class="flex-grow overflow-y-auto p-6 relative">
+                <!-- Text area input for drafting / copy-pasting raw text -->
+                <textarea id="textarea-doc-input" class="w-full h-full border-none bg-transparent resize-none font-body-md text-on-surface placeholder:text-on-surface-variant/45 focus:ring-0 focus:outline-none focus:border-none p-0 text-base" placeholder="Paste your target document text here to extract structured entities..."></textarea>
+                
+                <!-- Display rendered spans on run completion -->
+                <div id="text-viewer" class="text-viewer hidden"></div>
+            </div>
+
+            <!-- Loading overlay inside the document view -->
+            <div class="loading-overlay active" id="loading-overlay">
+                <div class="spinner"></div>
+                <div class="loading-text text-sm mt-3" id="loading-text">Analyzing grounding spans...</div>
+            </div>
+        </section>
+
+        <!-- Right Pane: List of Traceable Grounded Entity Cards -->
+        <section class="w-96 flex flex-col overflow-hidden bg-surface-container-low flex-shrink-0">
+            <div class="px-6 py-4 border-b border-surface-container flex items-center justify-between bg-white flex-shrink-0">
+                <div class="flex items-center gap-2">
+                    <h3 class="text-sm font-bold text-void-black">Traceable Extractions</h3>
+                    <span class="hci-badge" title="Explainable AI (XAI): Explicit verification showing how and where each structured key-value attribute relates back to raw text.">HCI</span>
+                </div>
+                <button id="btn-clear-extractions" class="btn-workbench btn-workbench-sm btn-workbench-danger" style="display: none;">Clear</button>
+            </div>
+            
+            <!-- Overall Alignment Analytics Summary -->
+            <div id="extraction-stats" class="extraction-stats flex-shrink-0" style="display: none;" aria-live="polite">
+                <!-- Populated dynamically -->
+            </div>
+            
+            <!-- Cards list -->
+            <div class="flex-grow overflow-y-auto p-6">
+                <div id="extractions-empty" class="h-full flex flex-col items-center justify-center text-center p-6 space-y-4">
+                    <div class="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center text-on-surface-variant/40">
+                        <span class="material-symbols-outlined text-[36px]">verified</span>
+                    </div>
+                    <p class="text-xs text-on-surface-variant max-w-[200px] leading-relaxed">Run extraction or choose a template to view grounded entities and attributes</p>
+                </div>
+                
+                <div id="extractions-container" class="extraction-groups hidden space-y-4" aria-live="polite">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </section>
+
+    </div>
+</main>
+
+<!-- Popovers, Cards and Edit Modals -->
+
+<!-- Active Text Selection Categorization Popup -->
+<div id="selection-popover" class="selection-popover hidden shadow-2xl"></div>
+
+<!-- Spans information cards showing attributes on hover -->
+<div id="span-hover-card" class="span-hover-card hidden"></div>
+
+<!-- Modal Dialog: Create/Edit Extraction attributes -->
+<div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal shadow-2xl">
+        <div class="modal-header">
+            <h3 id="modal-title" class="font-bold text-void-black text-sm">Edit Extraction</h3>
+            <button class="text-on-surface-variant hover:text-void-black text-2xl font-bold" id="modal-close" aria-label="Close dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="space-y-1.5">
+                <label for="modal-entity-text" class="text-xs font-semibold text-on-surface-variant">Selected Text Span</label>
+                <input type="text" id="modal-entity-text" readonly class="w-full studio-input rounded-xl border border-outline-variant bg-surface-container-low text-xs italic" style="background-color: #f7f6f9;">
+            </div>
+            <div class="space-y-1.5">
+                <label for="modal-entity-class" class="text-xs font-semibold text-on-surface-variant">Entity Class</label>
+                <select id="modal-entity-class" class="w-full studio-select rounded-xl border border-outline-variant focus:border-primary text-xs">
+                    <!-- Loaded dynamically -->
+                </select>
+            </div>
+            <div class="space-y-2">
+                <label class="text-xs font-semibold text-on-surface-variant block">Attributes</label>
+                <div id="modal-attributes-list" class="space-y-2 max-h-48 overflow-y-auto">
+                    <!-- Attribute rows go here -->
+                </div>
+                <button class="bg-primary/15 text-primary hover:bg-primary/20 px-3 py-1.5 text-xs rounded-xl transition-all font-semibold mt-1" id="modal-add-attribute">+ Add Attribute</button>
+            </div>
+        </div>
+        <div class="modal-footer flex gap-2">
+            <button class="btn-workbench border border-outline-variant/60 rounded-xl" id="modal-cancel">Cancel</button>
+            <button class="btn-workbench btn-workbench-primary rounded-xl" id="modal-save">Apply Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Non-blocking toast notification stack -->
+<div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="false"></div>
+
+<script src="/static/studio.js"></script>
+</body>
+</html>

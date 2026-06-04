@@ -124,7 +124,7 @@ def generate_summary_pdf(nodes: list, edges: list, documents: list) -> io.BytesI
     # ── Story ─────────────────────────────────────────────────────────────────
     story = []
 
-    story.append(Paragraph("AetherGraph Summary", title_style))
+    story.append(Paragraph("langextract Summary", title_style))
     story.append(Paragraph("Active Workspace Knowledge Base &amp; Concept Synthesis", subtitle_style))
     story.append(Spacer(1, 8))
 
@@ -205,7 +205,7 @@ def generate_summary_pdf(nodes: list, edges: list, documents: list) -> io.BytesI
     # ── Footer ────────────────────────────────────────────────────────────────
     story.append(Spacer(1, 8))
     story.append(Paragraph(
-        "Generated automatically by AetherGraph AI. Private knowledge workspace.",
+        "Generated automatically by langextract AI. Private knowledge workspace.",
         meta_style,
     ))
 

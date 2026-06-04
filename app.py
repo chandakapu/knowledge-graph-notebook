@@ -1,5 +1,6 @@
 import os
 import re
+import json
 import traceback
 from flask import Flask, render_template, request, jsonify, send_file
 from pydantic import BaseModel
@@ -463,7 +464,7 @@ def export_pdf():
             pdf_buffer,
             mimetype="application/pdf",
             as_attachment=True,
-            download_name="AetherGraph_Summary.pdf"
+            download_name="langextract_summary.pdf"
         )
     except Exception as e:
         tb = traceback.format_exc()
@@ -526,7 +527,7 @@ def chat():
     try:
         extractor = get_graph_extractor()
         
-        system_prompt = """You are AetherGraph AI Assistant — an expert research assistant in a knowledge-graph workspace.
+        system_prompt = """You are langextract AI Assistant — an expert research assistant in a knowledge-graph workspace.
 Your task is to answer user questions using the provided knowledge graph (nodes and edges) as your primary context, and identify which nodes are semantically relevant to the query based on their meaning and relationships.
 
 Instructions:
@@ -638,7 +639,7 @@ def search():
 
     try:
         extractor = get_graph_extractor()
-        system_prompt = """You are AetherGraph Semantic Search Engine.
+        system_prompt = """You are langextract Semantic Search Engine.
 Given a user query and a list of nodes with descriptions, identify which nodes are semantically relevant to the query based on their meaning, concepts, and descriptions.
 Rank them in order of relevance.
 List up to 3 node names. The names must match the node names in the list EXACTLY.
@@ -693,6 +694,300 @@ Query: {query}
             cleaned_matches.append(existing_names[m.lower()])
 
     return jsonify({"matched_nodes": cleaned_matches, "reason": reason})
+
+
+# --------------------------------------------------------------------------- #
+# LangExtract Studio Templates & Routes                                       #
+# --------------------------------------------------------------------------- #
+
+TEMPLATES = {
+    "romeo_juliet": {
+        "name": "Romeo & Juliet (Characters & Emotions)",
+        "description": "Extract characters, their emotions, and romantic/metaphorical relationships from dramatic dialogue.",
+        "prompt": "Extract characters, emotions, and relationships in order of appearance.\nUse exact text for extractions. Do not paraphrase or overlap entities.\nProvide meaningful attributes for each entity to add context.",
+        "schema": {
+            "character": {
+                "emotional_state": "Current emotion or state of mind (e.g. wonder, sorrow)"
+            },
+            "emotion": {
+                "feeling": "Description of the feeling captured by the expression"
+            },
+            "relationship": {
+                "type": "The style or context of relationship described (e.g. metaphor, marriage)"
+            }
+        },
+        "examples": [
+            {
+                "text": "ROMEO. But soft! What light through yonder window breaks? It is the east, and Juliet is the sun.",
+                "extractions": [
+                    {
+                        "extraction_class": "character",
+                        "extraction_text": "ROMEO",
+                        "attributes": {"emotional_state": "wonder"}
+                    },
+                    {
+                        "extraction_class": "emotion",
+                        "extraction_text": "But soft!",
+                        "attributes": {"feeling": "gentle awe"}
+                    },
+                    {
+                        "extraction_class": "relationship",
+                        "extraction_text": "Juliet is the sun",
+                        "attributes": {"type": "metaphor"}
+                    }
+                ]
+            }
+        ],
+        "input_text": "Lady Juliet gazed longingly at the stars, her heart aching for Romeo. But soft! She whispered, \"My love is as deep as the sea.\""
+    },
+    "clinical_note": {
+        "name": "Clinical Trial Medication & Dosage",
+        "description": "Identify medical treatments, including medication names, dosages, administration routes, and dosage frequencies.",
+        "prompt": "Extract medications, dosages, and frequencies from the clinical note.\nUse exact text for all extractions. Ensure attributes capture medical context accurately.",
+        "schema": {
+            "medication": {
+                "generic_name": "Generic chemical name of the drug",
+                "class": "Drug class (e.g. biguanide, beta-blocker)"
+            },
+            "dosage": {
+                "amount": "The numeric quantity/concentration (e.g., 500mg, 10mg)",
+                "route": "Administration route (e.g. oral, intravenous)"
+            },
+            "frequency": {
+                "interval": "Standard medical shorthand or description (e.g. BID, once daily)"
+            }
+        },
+        "examples": [
+            {
+                "text": "Patient was started on Metformin 500mg orally twice daily for diabetes control.",
+                "extractions": [
+                    {
+                        "extraction_class": "medication",
+                        "extraction_text": "Metformin",
+                        "attributes": {"generic_name": "metformin", "class": "biguanide"}
+                    },
+                    {
+                        "extraction_class": "dosage",
+                        "extraction_text": "500mg",
+                        "attributes": {"amount": "500mg", "route": "oral"}
+                    },
+                    {
+                        "extraction_class": "frequency",
+                        "extraction_text": "twice daily",
+                        "attributes": {"interval": "twice daily"}
+                    }
+                ]
+            }
+        ],
+        "input_text": "DISCHARGE SUMMARY:\nHe was prescribed Lisinopril 10mg once daily for hypertension. For pain, take Acetaminophen 325mg as needed every 6 hours."
+    },
+    "recipes": {
+        "name": "Recipe Ingredients & Methods",
+        "description": "Parse recipes into ingredient components, specific volumes/weights, and procedural cooking instructions.",
+        "prompt": "Extract ingredients, quantities, and preparation steps from the recipe text.\nEnsure text matches verbatim and attributes describe culinary units and details.",
+        "schema": {
+            "ingredient": {
+                "name": "Ingredient standard name",
+                "state": "State of preparation (e.g., chopped, melted, sifted)"
+            },
+            "quantity": {
+                "amount": "Numeric amount",
+                "unit": "Measurement unit (e.g. cups, grams, tbsp)"
+            },
+            "step": {
+                "action": "Core culinary action verb"
+            }
+        },
+        "examples": [
+            {
+                "text": "Add 2 cups of chopped onions to the pan and saute until translucent.",
+                "extractions": [
+                    {
+                        "extraction_class": "ingredient",
+                        "extraction_text": "onions",
+                        "attributes": {"name": "onion", "state": "chopped"}
+                    },
+                    {
+                        "extraction_class": "quantity",
+                        "extraction_text": "2 cups",
+                        "attributes": {"amount": "2", "unit": "cups"}
+                    },
+                    {
+                        "extraction_class": "step",
+                        "extraction_text": "saute until translucent",
+                        "attributes": {"action": "saute"}
+                    }
+                ]
+            }
+        ],
+        "input_text": "To bake the bread, combine 500g of white flour with 7g of dry yeast. Mix with 350ml of warm water, then knead for 10 minutes."
+    }
+}
+
+
+@app.route("/studio")
+def studio():
+    return render_template("studio.html")
+
+
+@app.route("/api/templates", methods=["GET"])
+def get_templates():
+    """Retrieve all pre-configured prompt, schema, and example templates."""
+    return jsonify(TEMPLATES)
+
+
+@app.route("/api/extract", methods=["POST"])
+def run_extraction():
+    """Execute LangExtract using the live Python package."""
+    try:
+        import langextract as lx
+        
+        request_data = request.get_json(force=True) or {}
+        text = request_data.get("text", "").strip()
+        prompt_description = request_data.get("prompt_description", "").strip()
+        examples = request_data.get("examples", [])
+        model_id = request_data.get("model_id", "gemini-3.1-flash-lite")
+        api_key = request_data.get("api_key") or os.environ.get("LANGEXTRACT_API_KEY") or os.environ.get("GEMINI_API_KEY")
+        temperature = request_data.get("temperature")
+        
+        if not text:
+            return jsonify({"error": "Please enter a target document first!"}), 400
+        if not prompt_description:
+            return jsonify({"error": "Extraction instructions cannot be empty!"}), 400
+            
+        if not api_key and "gemini" in model_id.lower():
+            return jsonify({
+                "error": "A Gemini API Key is required for cloud-hosted Gemini models. Please enter your API Key in the settings sidebar."
+            }), 400
+
+        # Prepare example data structure
+        lx_examples = []
+        for ex in examples:
+            lx_extractions = []
+            for ext in ex.get("extractions", []):
+                lx_extractions.append(
+                    lx.data.Extraction(
+                        extraction_class=ext.get("extraction_class"),
+                        extraction_text=ext.get("extraction_text"),
+                        attributes=ext.get("attributes", {})
+                    )
+                )
+            lx_examples.append(
+                lx.data.ExampleData(
+                    text=ex.get("text"),
+                    extractions=lx_extractions
+                )
+            )
+            
+        print(f"\n[Flask /api/extract] Running extract with model: {model_id}")
+        
+        # Invoke LangExtract
+        result = lx.extract(
+            text_or_documents=text,
+            prompt_description=prompt_description,
+            examples=lx_examples,
+            model_id=model_id,
+            api_key=api_key,
+            temperature=temperature,
+            show_progress=False
+        )
+        
+        # Parse output into clean JSON serializable response
+        serialized_extractions = []
+        for ext in result.extractions:
+            char_interval = None
+            if ext.char_interval:
+                char_interval = {
+                    "start_pos": ext.char_interval.start_pos,
+                    "end_pos": ext.char_interval.end_pos
+                }
+            
+            serialized_extractions.append({
+                "extraction_class": ext.extraction_class,
+                "extraction_text": ext.extraction_text,
+                "char_interval": char_interval,
+                "alignment_status": ext.alignment_status.value if ext.alignment_status else None,
+                "extraction_index": ext.extraction_index,
+                "attributes": ext.attributes or {}
+            })
+            
+        return jsonify({
+            "document_id": result.document_id,
+            "text": result.text,
+            "extractions": serialized_extractions
+        })
+
+    except ImportError as e:
+        print(f"[Flask /api/extract] ImportError during extract: {e}")
+        return jsonify({
+            "error": "Failed to load LangExtract package. Ensure that dependencies are fully installed in the environment."
+        }), 500
+    except Exception as e:
+        print(f"[Flask /api/extract] Exception during extraction run: {e}")
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/save", methods=["POST"])
+def save_extraction():
+    """Save the annotated document (including user edits) to a local JSONL file."""
+    try:
+        import langextract as lx
+        
+        request_data = request.get_json(force=True) or {}
+        text = request_data.get("text")
+        document_id = request_data.get("document_id")
+        extractions = request_data.get("extractions", [])
+        filename = request_data.get("filename", "custom_extraction.jsonl")
+        
+        # Convert requests annotations to lx.data.Extraction format
+        lx_extractions = []
+        for idx, ext in enumerate(extractions):
+            char_interval = None
+            if ext.get("char_interval"):
+                char_interval = lx.data.CharInterval(
+                    start_pos=ext["char_interval"]["start_pos"],
+                    end_pos=ext["char_interval"]["end_pos"]
+                )
+            
+            lx_extractions.append(
+                lx.data.Extraction(
+                    extraction_class=ext["extraction_class"],
+                    extraction_text=ext["extraction_text"],
+                    char_interval=char_interval,
+                    extraction_index=ext.get("extraction_index", idx),
+                    attributes=ext.get("attributes", {})
+                )
+            )
+            
+        annotated_doc = lx.data.AnnotatedDocument(
+            document_id=document_id,
+            text=text,
+            extractions=lx_extractions
+        )
+        
+        # Ensure target file name is secure and written within workspace
+        filename = os.path.basename(filename)
+        if not filename.endswith(".jsonl"):
+            filename += ".jsonl"
+            
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        output_dir = os.path.join(current_dir, "gui_exports")
+        os.makedirs(output_dir, exist_ok=True)
+        filepath = os.path.join(output_dir, filename)
+        
+        lx.io.save_annotated_documents([annotated_doc], output_name=filename, output_dir=output_dir)
+        
+        return jsonify({
+            "status": "success",
+            "filepath": filepath,
+            "message": f"Successfully exported extraction document to {filepath}"
+        })
+        
+    except Exception as e:
+        print(f"[Flask /api/save] Failed to save document: {e}")
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
