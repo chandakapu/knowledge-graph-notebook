@@ -1,7 +1,5 @@
 # langextract
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/chandakapu/langextract)
-
 A Flask-based web application that provides a neuro-symbolic knowledge mapping workspace and an interactive visual workbench for Human-in-the-Loop (HITL) text extraction. It leverages Google's Gemini AI to automatically extract concepts and relationships to build an interactive knowledge graph, combined with visual grounding, manual annotation override tools, and action history tracking.
 
 ---
@@ -139,17 +137,12 @@ The application will be available at **http://localhost:5000**.
 
 ## Deployment
 
-You can deploy this project for free on **Render** (using the Free Web Service tier).
-
-### One-Click Deploy
-Click the button below to start deployment:
-
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://deploy-to-render-button.svg)
+You can deploy this project on hosting platforms such as **Render** using the Free Web Service tier.
 
 ### Manual Setup on Render
 1. Create a free account on [Render](https://render.com).
-2. Click **New** -> **Web Service** and link this GitHub repository.
-3. Use the following configuration:
+2. Click **New** -> **Web Service** and link your GitHub repository.
+3. Configure the service using the following parameters:
    - **Environment**: `Python`
    - **Build Command**: `pip install -r requirements.txt`
    - **Start Command**: `gunicorn app:app --bind 0.0.0.0:$PORT`
