@@ -1,10 +1,14 @@
 import os
-from flask import Flask
+from flask import Flask, send_from_directory
 from routes.workspace import workspace_bp
 from routes.studio import studio_bp
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16 MB
+
+@app.route("/lib/<path:filename>")
+def serve_lib(filename):
+    return send_from_directory("lib", filename)
 
 # Register Blueprints
 app.register_blueprint(workspace_bp)
