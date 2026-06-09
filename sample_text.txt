@@ -1,9 +1,0 @@
-Machine Learning (ML) is a subset of Artificial Intelligence (AI) that focuses on the development of algorithms allowing computers to learn from data.
-
-Gradient Descent is an optimization algorithm used to minimize a loss function in various machine learning models. It uses the derivative (turunan) to find the minimum point of a function.
-
-Gauss-Seidel is a method used to solve a system of linear equations iteratively. It can be faster than other direct methods when the matrix is sparse.
-
-Newton-Raphson is a root-finding algorithm used to quickly find good approximations for the roots of a real-valued function.
-
-Neural Networks solve complex non-linear problems by mimicking the human brain's interconnected neuron structure. They heavily rely on backpropagation, which internally uses gradient descent for weight updates.

@@ -10,3 +10,12 @@ gui_exports/
 .codegraph/
 test_output.pdf
 *.pdf
+
+# Untracked/deleted files
+langextract-gui/
+front-end-reference/
+download_screens.py
+sample_text.txt
+PLAN.md
+CLAUDE.md
+.claude/
