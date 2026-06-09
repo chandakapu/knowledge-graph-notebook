@@ -4,3 +4,4 @@ google-genai>=1.0.0
 langextract
 pypdf>=4.0.0
 reportlab>=4.0.0
+gunicorn>=22.0.0
