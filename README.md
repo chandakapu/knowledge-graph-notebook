@@ -1,5 +1,7 @@
 # langextract
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/chandakapu/langextract)
+
 A Flask-based web application that provides a neuro-symbolic knowledge mapping workspace and an interactive visual workbench for Human-in-the-Loop (HITL) text extraction. It leverages Google's Gemini AI to automatically extract concepts and relationships to build an interactive knowledge graph, combined with visual grounding, manual annotation override tools, and action history tracking.
 
 ---
@@ -8,7 +10,7 @@ A Flask-based web application that provides a neuro-symbolic knowledge mapping w
 
 ### 1. Interactive Knowledge Graph & Workspace
 - **Knowledge Graph Extraction** — Automatically extracts entities (nodes) and relationships (edges) from text using Google's Gemini AI.
-- **Interactive Visualization** — Renders the knowledge graph as a navigable network using [Vis.js](https://visjs.org/).
+- **Interactive Visualization** — Renders the knowledge graph as a navigable network using a local build of [Vis.js](https://visjs.org/).
 - **Document Upload** — Supports `.txt`, `.md`, `.csv`, `.json`, and `.pdf` files.
 - **Semantic Chat** — Ask questions about your knowledge base; the AI answers based on extracted concepts.
 - **Semantic Search** — Search for nodes in the graph by meaning and relationships, not just exact keywords.
@@ -26,11 +28,11 @@ A Flask-based web application that provides a neuro-symbolic knowledge mapping w
 
 ## 🛠️ Tech Stack
 
-- **Backend:** Flask (Python)
+- **Backend:** Flask (Python) with modular Blueprint architecture
 - **AI / LLM:** Google Gemini (via `google.genai`)
 - **Document NLP:** `langextract` library
 - **PDF Generation:** ReportLab
-- **Frontend:** Vanilla HTML/CSS/JS (Tailwind CSS, Vis.js, and custom workbench layouts)
+- **Frontend:** Vanilla HTML/CSS/JS (Tailwind CSS, local Vis.js, and custom workbench layouts)
 - **Schema Validation:** Pydantic
 
 ---
@@ -46,7 +48,7 @@ A Flask-based web application that provides a neuro-symbolic knowledge mapping w
 
 1. Clone the repository and navigate into it:
    ```bash
-   git clone https://github.com/chandakapu/knowledge-graph-notebook.git
+   git clone https://github.com/chandakapu/langextract.git
    cd langextract
    ```
 
@@ -83,14 +85,18 @@ The application will be available at **http://localhost:5000**.
 
 ```
 .
-├── app.py                    # Main Flask application (routes, API endpoints, templates logic)
+├── app.py                    # App Factory registering workspace and studio blueprints
+├── routes/                   # Modular routes package
+│   ├── __init__.py
+│   ├── workspace.py          # Workspace view and API endpoints (chat, search, analyze)
+│   └── studio.py             # HCI Studio view and API endpoints (templates, extract, save)
 ├── core/
 │   ├── __init__.py
 │   ├── graph_extractor.py    # Gemini-based knowledge graph extraction
 │   ├── doc_analyzer.py       # Document analysis and highlighting via langextract
 │   └── pdf_generator.py      # PDF summary generation with ReportLab
 ├── lib/                      # Third-party frontend assets
-│   ├── vis-9.1.2/
+│   ├── vis-9.1.2/            # Local Vis.js build
 │   ├── tom-select/
 │   └── bindings/
 ├── templates/                # HTML templates (Jinja2 / plain HTML)
@@ -100,10 +106,11 @@ The application will be available at **http://localhost:5000**.
 │   ├── features.html         # Features detail page
 │   └── pricing.html          # Pricing and About page
 ├── static/
-│   ├── index.css             # Main workspace global stylesheet
+│   ├── utils.js              # Shared utility functions (e.g. escapeHtml)
 │   ├── studio.css            # Extraction Studio specific styling
 │   └── studio.js             # Client controller for the Visual Studio
-├── gui_exports/              # Saved JSONL annotations and exports
+├── LICENSE                   # MIT License
+├── render.yaml               # Render infrastructure-as-code deployment blueprint
 ├── requirements.txt
 └── README.md
 ```
@@ -126,7 +133,34 @@ The application will be available at **http://localhost:5000**.
 | `/api/export-pdf` | POST | Export a PDF summary of the workspace |
 | `/api/templates` | GET | Retrieve pre-configured studio schema templates |
 | `/api/extract` | POST | Execute schema-constrained visual extraction |
-| `/api/save` | POST | Export annotated grounded spans to a local `.jsonl` file |
+| `/api/save` | POST | Convert and download annotated grounded spans as a browser JSONL |
+
+---
+
+## ☁️ Deployment
+
+You can deploy this project for free on **Render** (using the Free Web Service tier).
+
+### One-Click Deploy
+Click the button below to start deployment:
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/chandakapu/langextract)
+
+### Manual Setup on Render
+1. Create a free account on [Render](https://render.com).
+2. Click **New** -> **Web Service** and link this GitHub repository.
+3. Use the following configuration:
+   - **Environment**: `Python`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `gunicorn app:app --bind 0.0.0.0:$PORT`
+4. Under **Advanced**, add the environment variable:
+   - `GEMINI_API_KEY`: *Your Google Gemini API Key*
+5. Click **Create Web Service**.
+
+> [!NOTE]
+> **Render Free Tier Cold-Start**: Because of the Render free tier limits, the application spins down after 15 minutes of inactivity. If the service is asleep, loading the page for the first time may take about 50 seconds to boot up.
+>
+> **Client-side JSONL Exports**: Saving annotations via `/api/save` processes the data in-memory and triggers a direct browser file download. No files are written or saved on the server's ephemeral filesystem, making it fully stateless and safe for multi-user deployment.
 
 ---
 
@@ -141,4 +175,4 @@ The application will be available at **http://localhost:5000**.
 
 ## ⚖️ License
 
-MIT
+MIT License. See [LICENSE](file:///home/chandaka/Documents/ANTIGRAVITY/knowledge-graph-notebook/LICENSE) for details.
