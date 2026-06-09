@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta name="description" content="langextract Workspace - Analyze research documents, extract knowledge graphs, and query your knowledge base semantically using Gemini AI."/>
     <title>langextract | Workspace</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Geist:wght@400;500&amp;display=swap" rel="stylesheet"/>
@@ -151,7 +152,8 @@
             background-color: rgba(123, 85, 0, 0.15);
         }
     </style>
-    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <script src="/lib/vis-9.1.2/vis-network.min.js"></script>
+    <script src="/static/utils.js"></script>
 </head>
 <body class="bg-background text-on-background font-body-md min-h-screen overflow-hidden flex">
 
@@ -232,10 +234,12 @@
                 </button>
                 <div class="flex items-center gap-3 cursor-pointer group">
                     <div class="text-right">
-                        <p class="font-label-md text-label-md text-void-black group-hover:text-primary font-bold">Alex Chen</p>
-                        <p class="text-[10px] uppercase tracking-wider text-on-surface-variant">Pro Plan</p>
+                        <p class="font-label-md text-label-md text-void-black group-hover:text-primary font-bold">Guest</p>
+                        <p class="text-[10px] uppercase tracking-wider text-on-surface-variant">Free Plan</p>
                     </div>
-                    <img alt="User Profile" class="w-10 h-10 rounded-full border-2 border-white shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfrSUC_-5frdrwRbnagF5zabagpoAjDc4hp3rP21eIR9geHTY28sO_-laxSAVTedQQNPj3HjV6LKPP_IXhGiRLki7KE5xz5swcT9bjm-6rP49BHMqSR8YAj7zzDVf3qTnJzqO5X-kb92JBXspeuXQwFLI-yjW5NxVAKm5z6q74zjzKR3aYYY6Am1nsJOvG80sYqVbAi00c_NCnHKyhY9mKMGZVAdzu2F01LncAYLZA96fpPwfD8-qHtuYUYHrgRB3VU27Oi8nTNRI"/>
+                    <div class="w-10 h-10 rounded-full border-2 border-white shadow-sm bg-primary/20 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-primary text-[20px]">person</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -672,9 +676,6 @@
     container.scrollTop = container.scrollHeight;
   }
 
-  function escapeHtml(str) {
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
 
   function renderHighlights(text, highlights) {
     if (!highlights || highlights.length === 0) return escapeHtml(text);

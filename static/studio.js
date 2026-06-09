@@ -192,7 +192,7 @@ function showToast(message, type = "info", duration = 4000) {
     toast.className = `toast toast-${type}`;
     toast.innerHTML = `
         <span class="toast-icon">${icons[type]}</span>
-        <span class="toast-body">${escapeHTML(message)}</span>
+        <span class="toast-body">${escapeHtml(message)}</span>
         <button class="toast-close" aria-label="Dismiss notification">&times;</button>
     `;
     
@@ -293,7 +293,7 @@ function renderHistoryPanel() {
         item.style.opacity = "0.45";
         item.innerHTML = `
             <span class="history-item-icon">↻</span>
-            <span class="history-item-desc">${escapeHTML(redoStack[i].description)}</span>
+            <span class="history-item-desc">${escapeHtml(redoStack[i].description)}</span>
         `;
         historyList.appendChild(item);
     }
@@ -314,7 +314,7 @@ function renderHistoryPanel() {
         item.className = "history-item";
         item.innerHTML = `
             <span class="history-item-icon">${icon}</span>
-            <span class="history-item-desc">${escapeHTML(undoStack[i].description)}</span>
+            <span class="history-item-desc">${escapeHtml(undoStack[i].description)}</span>
         `;
         historyList.appendChild(item);
     }
@@ -440,14 +440,14 @@ function renderInteractiveSpans() {
             continue; 
         }
         
-        outputHTML += escapeHTML(raw.substring(currentIndex, start_pos));
+        outputHTML += escapeHtml(raw.substring(currentIndex, start_pos));
         const classColorIdx = (state.classes.indexOf(ext.extraction_class) % 4) + 1 || "unknown";
-        outputHTML += `<span class="grounded-span class-${classColorIdx}" data-index="${ext.extraction_index}" tabindex="0" role="button" aria-label="${escapeHTML(ext.extraction_text)} (${ext.extraction_class})">${escapeHTML(raw.substring(start_pos, end_pos))}</span>`;
+        outputHTML += `<span class="grounded-span class-${classColorIdx}" data-index="${ext.extraction_index}" tabindex="0" role="button" aria-label="${escapeHtml(ext.extraction_text)} (${ext.extraction_class})">${escapeHtml(raw.substring(start_pos, end_pos))}</span>`;
         
         currentIndex = end_pos;
     }
     
-    outputHTML += escapeHTML(raw.substring(currentIndex));
+    outputHTML += escapeHtml(raw.substring(currentIndex));
     
     textViewer.innerHTML = outputHTML;
     textViewer.style.display = "block";
@@ -538,7 +538,7 @@ function renderExtractionsPanel() {
                 Object.entries(ext.attributes).forEach(([key, val]) => {
                     attributesHTML += `
                         <div class="attribute-key">${key}:</div>
-                        <div class="attribute-val">${escapeHTML(String(val))}</div>
+                        <div class="attribute-val">${escapeHtml(String(val))}</div>
                     `;
                 });
                 attributesHTML += `</div>`;
@@ -546,7 +546,7 @@ function renderExtractionsPanel() {
             
             card.innerHTML = `
                 <div class="entity-card-header">
-                    <div class="entity-name">${escapeHTML(ext.extraction_text)}</div>
+                    <div class="entity-name">${escapeHtml(ext.extraction_text)}</div>
                     <div style="display:flex; align-items:center; gap:0.35rem;">
                         ${alignmentBadge}
                         <span class="entity-badge class-${groupColorIdx}">${ext.extraction_class}</span>
@@ -678,14 +678,14 @@ function showHoverCard(index, event) {
     let attrs = "";
     if (ext.attributes) {
         Object.entries(ext.attributes).forEach(([k, v]) => {
-            attrs += `<div><strong>${k}:</strong> ${escapeHTML(String(v))}</div>`;
+            attrs += `<div><strong>${k}:</strong> ${escapeHtml(String(v))}</div>`;
         });
     }
     
     const alignmentBadge = getAlignmentBadgeHTML(ext.alignment_status);
     
     spanHoverCard.innerHTML = `
-        <h4>${escapeHTML(ext.extraction_text)}</h4>
+        <h4>${escapeHtml(ext.extraction_text)}</h4>
         <div style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:0.25rem; display:flex; align-items:center; gap:0.35rem;">
             Class: <span style="font-weight:600;">${ext.extraction_class}</span>
             ${alignmentBadge}
@@ -849,8 +849,8 @@ function addAttributeRow(key = "", val = "") {
     const row = document.createElement("div");
     row.className = "attribute-input-row";
     row.innerHTML = `
-        <input type="text" placeholder="Key" class="attr-key studio-input" value="${escapeHTML(key)}" style="width:30%;">
-        <input type="text" placeholder="Value" class="attr-val studio-input" value="${escapeHTML(String(val))}">
+        <input type="text" placeholder="Key" class="attr-key studio-input" value="${escapeHtml(key)}" style="width:30%;">
+        <input type="text" placeholder="Value" class="attr-val studio-input" value="${escapeHtml(String(val))}">
         <button onclick="this.parentElement.remove()" class="text-text-muted hover:text-accent font-bold" aria-label="Remove attribute">&times;</button>
     `;
     modalAttributesList.appendChild(row);
@@ -1059,11 +1059,4 @@ function hideLoading() {
     loadingOverlay.classList.remove("active");
 }
 
-function escapeHTML(str) {
-    return str
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
+
