@@ -6,38 +6,38 @@ A Flask-based web application that provides a neuro-symbolic knowledge mapping w
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
 ### 1. Interactive Knowledge Graph & Workspace
-- **Knowledge Graph Extraction** — Automatically extracts entities (nodes) and relationships (edges) from text using Google's Gemini AI.
-- **Interactive Visualization** — Renders the knowledge graph as a navigable network using a local build of [Vis.js](https://visjs.org/).
-- **Document Upload** — Supports `.txt`, `.md`, `.csv`, `.json`, and `.pdf` files.
-- **Semantic Chat** — Ask questions about your knowledge base; the AI answers based on extracted concepts.
-- **Semantic Search** — Search for nodes in the graph by meaning and relationships, not just exact keywords.
-- **PDF Export** — Export a styled PDF summary of your concepts, relationships, and source documents.
-- **Dynamic Fallback** — When the LLM is unavailable or rate-limited, a rule-based fallback extractor still produces useful results using sliding-window edge generation for focused, low-noise graphs.
+- **Knowledge Graph Extraction**: Automatically extracts entities (nodes) and relationships (edges) from text using Google's Gemini AI.
+- **Interactive Visualization**: Renders the knowledge graph as a navigable network using a local build of [Vis.js](https://visjs.org/).
+- **Document Upload**: Supports `.txt`, `.md`, `.csv`, `.json`, and `.pdf` files.
+- **Semantic Chat**: Ask questions about your knowledge base; the AI answers based on extracted concepts.
+- **Semantic Search**: Search for nodes in the graph by meaning and relationships, not just exact keywords.
+- **PDF Export**: Export a styled PDF summary of your concepts, relationships, and source documents.
+- **Dynamic Fallback**: When the LLM is unavailable or rate-limited, a rule-based fallback extractor still produces useful results using sliding-window edge generation for focused, low-noise graphs.
 
 ### 2. HCI Extraction Studio (Visual Web Workbench)
-- **Explainable AI (XAI) & Grounding** — Direct visual mapping linking extracted structured attributes/entities to their exact source text segment with alignment badges (✅ Solid Match, ⚠️ Partial/Overlapping, ❌ Missing).
-- **Human-in-the-Loop (HITL) Agency** — Drag-select raw text to instantly add or override entity labels and key-value attributes.
-- **Cognitive Load Reduction** — Pre-populated task templates (Romeo & Juliet character/emotion extraction, medical trial dosage, recipes) and dynamic schema classes builder.
-- **Error Prevention & Recovery** — Full undo/redo system for all manual corrections, supported by a visual history panel.
-- **Keyboard Shortcuts** — Tactile keys for fast undo (`Ctrl+Z`), redo (`Ctrl+Shift+Z`), saving (`Ctrl+S`), and dismissing popovers (`Escape`).
+- **Explainable AI (XAI) & Grounding**: Direct visual mapping linking extracted structured attributes/entities to their exact source text segment with alignment badges (Solid Match, Partial/Overlapping, Missing).
+- **Human-in-the-Loop (HITL) Agency**: Drag-select raw text to instantly add or override entity labels and key-value attributes.
+- **Cognitive Load Reduction**: Pre-populated task templates (Romeo & Juliet character/emotion extraction, medical trial dosage, recipes) and dynamic schema classes builder.
+- **Error Prevention & Recovery**: Full undo/redo system for all manual corrections, supported by a visual history panel.
+- **Keyboard Shortcuts**: Tactile keys for fast undo (`Ctrl+Z`), redo (`Ctrl+Shift+Z`), saving (`Ctrl+S`), and dismissing popovers (`Escape`).
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-- **Backend:** Flask (Python) with modular Blueprint architecture
-- **AI / LLM:** Google Gemini (via `google.genai`)
-- **Document NLP:** `langextract` library
-- **PDF Generation:** ReportLab
-- **Frontend:** Vanilla HTML/CSS/JS (Tailwind CSS, local Vis.js, and custom workbench layouts)
-- **Schema Validation:** Pydantic
+- **Backend**: Flask (Python) with modular Blueprint architecture
+- **AI / LLM**: Google Gemini (via `google.genai`)
+- **Document NLP**: `langextract` library
+- **PDF Generation**: ReportLab
+- **Frontend**: Vanilla HTML/CSS/JS (Tailwind CSS, local Vis.js, and custom workbench layouts)
+- **Schema Validation**: Pydantic
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -81,7 +81,7 @@ The application will be available at **http://localhost:5000**.
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 .
@@ -117,7 +117,7 @@ The application will be available at **http://localhost:5000**.
 
 ---
 
-## 🔌 API Endpoints
+## API Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
@@ -137,14 +137,14 @@ The application will be available at **http://localhost:5000**.
 
 ---
 
-## ☁️ Deployment
+## Deployment
 
 You can deploy this project for free on **Render** (using the Free Web Service tier).
 
 ### One-Click Deploy
 Click the button below to start deployment:
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/chandakapu/langextract)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://deploy-to-render-button.svg)
 
 ### Manual Setup on Render
 1. Create a free account on [Render](https://render.com).
@@ -164,7 +164,7 @@ Click the button below to start deployment:
 
 ---
 
-## ⚙️ Environment Variables
+## Environment Variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
@@ -173,6 +173,6 @@ Click the button below to start deployment:
 
 ---
 
-## ⚖️ License
+## License
 
 MIT License. See [LICENSE](file:///home/chandaka/Documents/ANTIGRAVITY/knowledge-graph-notebook/LICENSE) for details.
