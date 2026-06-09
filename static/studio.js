@@ -1036,10 +1036,22 @@ async function saveAnnotationsToFile() {
             })
         });
         
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Failed to save file.");
+        if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            throw new Error(data.error || "Failed to save file.");
+        }
         
-        showToast(`Annotations saved to: ${data.filepath}`, "success", 5000);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename.endsWith(".jsonl") ? filename : (filename + ".jsonl");
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        
+        showToast("Annotations exported successfully!", "success", 5000);
         
     } catch (err) {
         showToast(`Export failed: ${err.message}`, "error", 5000);
