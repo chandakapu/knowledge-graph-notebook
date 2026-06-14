@@ -1,6 +1,9 @@
 import os
 import textwrap
+import logging
 import langextract as lx
+
+logger = logging.getLogger("langextract.doc_analyzer")
 
 
 class DocAnalyzer:
@@ -64,8 +67,8 @@ class DocAnalyzer:
         Returns a list of dicts: [{text, start, end, class}, ...].
         Falls back to an empty list on API error.
         """
-        print(f"\n[Gemini DocAnalyzer] Sending highlight extraction request to Gemini ({self.model_id})...")
-        print(f"[Gemini DocAnalyzer] Input Text: {text!r}")
+        logger.info("Sending highlight extraction request to Gemini (%s)...", self.model_id)
+        logger.debug("Input Text: %r", text)
         try:
             result = lx.extract(
                 text_or_documents=text,
@@ -74,9 +77,9 @@ class DocAnalyzer:
                 model_id=self.model_id,
                 api_key=self.api_key,
             )
-            print(f"[Gemini DocAnalyzer] Highlight response received successfully. Extracted {len(result.extractions)} span(s).")
+            logger.info("Highlight response received successfully. Extracted %d span(s).", len(result.extractions))
         except Exception as e:
-            print(f"[Gemini DocAnalyzer] API Call Failed: {e}")
+            logger.error("API Call Failed: %s", e)
             raise e
 
         highlights = []

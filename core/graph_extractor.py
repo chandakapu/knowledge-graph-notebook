@@ -1,10 +1,13 @@
 import os
 import json
 import re
+import logging
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from google import genai
 from google.genai import types
 from pydantic import BaseModel
+
+logger = logging.getLogger("langextract.graph_extractor")
 
 
 # --- Pydantic Schemas ---
@@ -45,8 +48,8 @@ class GraphExtractor:
         Extract a structured knowledge graph from the given text using Gemini.
         Returns a plain dict with 'nodes' and 'edges' lists.
         """
-        print(f"\n[Gemini GraphExtractor] Sending request to Gemini ({self.model_id})...")
-        print(f"[Gemini GraphExtractor] Input Text: {text!r}")
+        logger.info("Sending request to Gemini (%s)...", self.model_id)
+        logger.debug("Input Text: %r", text)
         
         system_prompt = """You are an expert knowledge graph construction engine.
 Your goal is to extract a highly accurate, structured, and semantically rich knowledge graph from the given text.
@@ -99,15 +102,15 @@ Ensure output is a valid JSON object matching the requested schema.
                 ),
             )
             response = future.result(timeout=self.timeout_seconds)
-            print("[Gemini GraphExtractor] Response received successfully.")
+            logger.info("Response received successfully.")
         except FuturesTimeoutError:
-            print(f"[Gemini GraphExtractor] API call timed out after {self.timeout_seconds}s")
+            logger.warning("API call timed out after %ds", self.timeout_seconds)
             raise TimeoutError(
                 f"Gemini API call timed out after {self.timeout_seconds} seconds. "
                 "The server may be overloaded. Falling back to local extraction."
             )
         except Exception as e:
-            print(f"[Gemini GraphExtractor] API Call Failed: {e}")
+            logger.error("API Call Failed: %s", e)
             raise e
 
         kg = response.parsed

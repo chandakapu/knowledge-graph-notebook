@@ -1,10 +1,22 @@
 import os
+import logging
 from flask import Flask, send_from_directory
 from routes.workspace import workspace_bp
 from routes.studio import studio_bp
+from core.logger import setup_logging
+
+from core.limiter import limiter
+
+# Setup centralized logging
+debug = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
+log_level = logging.DEBUG if debug else logging.INFO
+setup_logging(level=log_level)
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16 MB
+
+# Initialize Limiter
+limiter.init_app(app)
 
 @app.route("/lib/<path:filename>")
 def serve_lib(filename):

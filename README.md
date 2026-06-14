@@ -72,10 +72,35 @@ A Flask-based web application that provides a neuro-symbolic knowledge mapping w
 
 ### Running the App
 
+#### Local Python Execution
 ```bash
 python3 app.py
 ```
+
+#### Docker Execution
+Ensure you have a `.env` file in the root directory containing your `GEMINI_API_KEY`:
+```env
+GEMINI_API_KEY="your_api_key_here"
+```
+
+Then, run:
+```bash
+# Build and run the container
+docker compose up --build
+```
+
 The application will be available at **http://localhost:5000**.
+
+---
+
+## Running Tests
+
+To run the unit and integration test suite:
+
+```bash
+# Run pytest with PYTHONPATH set to root
+PYTHONPATH=. .venv/bin/pytest tests/ -v
+```
 
 ---
 

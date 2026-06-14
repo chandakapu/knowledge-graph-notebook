@@ -1,10 +1,12 @@
 import os
+import logging
 import traceback
 import json
 from flask import Blueprint, render_template, request, jsonify, Response
 from core.studio_templates import TEMPLATES
 
 studio_bp = Blueprint("studio", __name__)
+logger = logging.getLogger("langextract.routes.studio")
 
 
 @studio_bp.route("/studio")
@@ -66,7 +68,7 @@ def run_extraction():
                 )
             )
             
-        print(f"\n[Flask /api/extract] Running extract with model: {model_id}")
+        logger.info("Running extract with model: %s", model_id)
         
         # Invoke LangExtract
         result = lx.extract(
@@ -105,13 +107,12 @@ def run_extraction():
         })
 
     except ImportError as e:
-        print(f"[Flask /api/extract] ImportError during extract: {e}")
+        logger.error("ImportError during extract: %s", e)
         return jsonify({
             "error": "Failed to load LangExtract package. Ensure that dependencies are fully installed in the environment."
         }), 500
     except Exception as e:
-        print(f"[Flask /api/extract] Exception during extraction run: {e}")
-        traceback.print_exc()
+        logger.exception("Exception during extraction run: %s", e)
         return jsonify({"error": str(e)}), 500
 
 
@@ -168,6 +169,5 @@ def save_extraction():
         )
         
     except Exception as e:
-        print(f"[Flask /api/save] Failed to save document: {e}")
-        traceback.print_exc()
+        logger.exception("Failed to save document: %s", e)
         return jsonify({"error": str(e)}), 500

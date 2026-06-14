@@ -2,24 +2,22 @@ import os
 import re
 import json
 import traceback
+import logging
 from flask import Blueprint, render_template, request, jsonify, send_file
-from pydantic import BaseModel
+from pydantic import ValidationError
 from google.genai import types
 
 from core.graph_extractor import GraphExtractor
 from core.doc_analyzer import DocAnalyzer
 from core.pdf_generator import generate_summary_pdf
 from core.fallback_extractor import dynamic_fallback_extract
+from core.embedding_store import EmbeddingStore
+from core.schemas import AnalyzeRequest, ChatRequest, SearchRequest, ExportPdfRequest
+from core.limiter import limiter
 
 workspace_bp = Blueprint("workspace", __name__)
+logger = logging.getLogger("langextract.routes.workspace")
 
-class ChatResponse(BaseModel):
-    answer: str
-    related_nodes: list[str]
-
-class SearchResponse(BaseModel):
-    matched_nodes: list[str]
-    reason: str
 
 # Lazy-initialise services (they check for the API key at runtime)
 _graph_extractor: GraphExtractor | None = None
@@ -60,6 +58,7 @@ def pricing():
 
 
 @workspace_bp.route("/api/upload", methods=["POST"])
+@limiter.limit("5 per minute")
 def upload_file():
     if "file" not in request.files:
         return jsonify({"error": "No file part in the request"}), 400
@@ -92,8 +91,8 @@ def upload_file():
         if not extracted_text:
             return jsonify({"error": "The uploaded file is empty or no text could be extracted."}), 400
             
-        print(f"\n[Flask API] File uploaded successfully: {filename} ({len(file_bytes)} bytes)")
-        print(f"[Flask API] Extracted text length: {len(extracted_text)} characters")
+        logger.info("File uploaded successfully: %s (%d bytes)", filename, len(file_bytes))
+        logger.debug("Extracted text length: %d characters", len(extracted_text))
         
         return jsonify({
             "filename": filename,
@@ -101,11 +100,12 @@ def upload_file():
         })
         
     except Exception as e:
-        print(f"[Flask API] Error parsing uploaded file {filename}: {e}")
+        logger.exception("Error parsing uploaded file %s: %s", filename, e)
         return jsonify({"error": f"Failed to parse file: {str(e)}"}), 500
 
 
 @workspace_bp.route("/api/analyze", methods=["POST"])
+@limiter.limit("10 per minute")
 def analyze():
     """
     Expects JSON: { "text": "..." }
@@ -115,11 +115,13 @@ def analyze():
         "highlights": [ { "text", "start", "end", "cls" }, ... ]
     }
     """
-    body = request.get_json(force=True)
-    text: str = (body or {}).get("text", "").strip()
+    try:
+        body = request.get_json(force=True) or {}
+        req = AnalyzeRequest(**body)
+    except ValidationError as ve:
+        return jsonify({"error": "Validation failed", "details": ve.errors()}), 422
 
-    if not text:
-        return jsonify({"error": "No text provided."}), 400
+    text = req.text.strip()
 
     errors = []
 
@@ -129,15 +131,15 @@ def analyze():
         extractor = get_graph_extractor()
         graph_data = extractor.extract(text)
     except ValueError as ve:
-        print(f"[Flask API] Graph extraction skipped (value error): {ve}")
+        logger.warning("Graph extraction skipped (value error): %s", ve)
         errors.append(f"Graph extraction skipped: {ve}")
     except Exception as e:
-        print(f"[Flask API] Graph extraction failed: {e}")
+        logger.error("Graph extraction failed: %s", e)
         errors.append(f"Graph extraction error: {e}")
 
     # Fallback if graph is empty (e.g. rate limit)
     if not graph_data.get("nodes"):
-        print("[Flask API] Graph empty or API error. Invoking dynamic fallback extractor for graph...")
+        logger.info("Graph empty or API error. Invoking dynamic fallback extractor for graph...")
         fallback_data = dynamic_fallback_extract(text)
         graph_data = fallback_data["graph"]
         errors.append("Using fallback graph data due to API error or empty result.")
@@ -150,15 +152,21 @@ def analyze():
         analyzer = get_doc_analyzer()
         highlights = analyzer.analyze(text)
     except Exception as e:
-        print(f"[Flask API] Doc analysis failed: {e}")
+        logger.error("Doc analysis failed: %s", e)
         errors.append(f"Doc analysis error: {e}")
 
     # Fallback if highlights are empty
     if not highlights:
-        print("[Flask API] Highlights empty or API error. Invoking dynamic fallback extractor for highlights...")
+        logger.info("Highlights empty or API error. Invoking dynamic fallback extractor for highlights...")
         if fallback_data is None:
             fallback_data = dynamic_fallback_extract(text)
         highlights = fallback_data["highlights"]
+
+    try:
+        store = EmbeddingStore()
+        store.embed_nodes(graph_data.get("nodes", []), graph_data.get("edges", []))
+    except Exception as ee:
+        logger.error("Pre-embedding nodes failed: %s", ee)
 
     response = {
         "graph": graph_data,
@@ -181,10 +189,15 @@ def export_pdf():
     }
     Generates and returns the PDF summary as a file download.
     """
-    body = request.get_json(force=True) or {}
-    nodes = body.get("nodes", [])
-    edges = body.get("edges", [])
-    documents = body.get("documents", [])
+    try:
+        body = request.get_json(force=True) or {}
+        req = ExportPdfRequest(**body)
+    except ValidationError as ve:
+        return jsonify({"error": "Validation failed", "details": ve.errors()}), 422
+
+    nodes = req.nodes
+    edges = req.edges
+    documents = req.documents
     
     try:
         pdf_buffer = generate_summary_pdf(nodes, edges, documents)
@@ -195,12 +208,12 @@ def export_pdf():
             download_name="langextract_summary.pdf"
         )
     except Exception as e:
-        tb = traceback.format_exc()
-        print(f"[Flask API] PDF Export Failed:\n{tb}")
+        logger.exception("PDF Export Failed: %s", e)
         return jsonify({"error": f"Failed to generate PDF: {str(e)}"}), 500
 
 
 @workspace_bp.route("/api/chat", methods=["POST"])
+@limiter.limit("20 per minute")
 def chat():
     """
     Expects JSON:
@@ -211,24 +224,40 @@ def chat():
     }
     Returns JSON: { "answer": "...", "related_nodes": [...] }
     """
-    body = request.get_json(force=True) or {}
-    question: str = (body.get("question") or "").strip()
-    nodes: list   = body.get("nodes", [])
-    edges: list   = body.get("edges", [])
+    try:
+        body = request.get_json(force=True) or {}
+        req = ChatRequest(**body)
+    except ValidationError as ve:
+        return jsonify({"error": "Validation failed", "details": ve.errors()}), 422
 
-    if not question:
-        return jsonify({"error": "No question provided."}), 400
+    question = req.question.strip()
+    nodes = req.nodes
+    edges = req.edges
 
-    # ── Build a concise knowledge-base summary from the graph ─────────────────
+    # Sync current session graph with embedding store
+    store = EmbeddingStore()
+    try:
+        store.embed_nodes(nodes, edges)
+    except Exception as ee:
+        logger.error("Sync embedding store failed: %s", ee)
+
+    # Retrieve only the top-K relevant nodes and edges
+    try:
+        retrieved_nodes, retrieved_edges = store.retrieve_context(question, top_k=8)
+    except Exception as ee:
+        logger.error("Context retrieval failed: %s", ee)
+        retrieved_nodes, retrieved_edges = nodes, edges
+
+    # ── Build a concise knowledge-base summary from the retrieved graph ───────
     kb_lines = []
-    for n in nodes:
+    for n in retrieved_nodes:
         name  = n.get("name", "")
         ntype = n.get("type", "Concept")
         desc  = n.get("description", "")
         if name:
             kb_lines.append(f"- [{ntype}] {name}: {desc}")
 
-    for e in edges:
+    for e in retrieved_edges:
         src = e.get("source", "")
         rel = e.get("relation", "RELATED_TO")
         tgt = e.get("target", "")
@@ -286,7 +315,7 @@ User Question: {question}
         if chat_data is not None:
             answer = chat_data.answer
             related_nodes = chat_data.related_nodes
-            print(f"[Flask /api/chat] Structured Gemini response received. Related nodes: {related_nodes}")
+            logger.info("Structured Gemini response received. Related nodes: %s", related_nodes)
         else:
             # Fallback parse from raw text
             raw_text = response.text.strip()
@@ -295,11 +324,10 @@ User Question: {question}
             parsed_json = json.loads(raw_text)
             answer = parsed_json.get("answer", "")
             related_nodes = parsed_json.get("related_nodes", [])
-            print(f"[Flask /api/chat] Parsed raw JSON Gemini response. Related nodes: {related_nodes}")
+            logger.info("Parsed raw JSON Gemini response. Related nodes: %s", related_nodes)
 
     except Exception as e:
-        print(f"[Flask /api/chat] Gemini unavailable or failed: {e}. Using local keyword fallback.")
-        traceback.print_exc()
+        logger.exception("Gemini unavailable or failed: %s. Using local keyword fallback.", e)
 
     # ── Fallback if API call failed ──
     if not answer:
@@ -335,6 +363,7 @@ User Question: {question}
 
 
 @workspace_bp.route("/api/search", methods=["POST"])
+@limiter.limit("30 per minute")
 def search():
     """
     Expects JSON:
@@ -344,9 +373,14 @@ def search():
     }
     Returns JSON: { "matched_nodes": ["Gradient Descent", "Objective Function"], "reason": "..." }
     """
-    body = request.get_json(force=True) or {}
-    query: str = (body.get("query") or "").strip()
-    nodes: list = body.get("nodes", [])
+    try:
+        body = request.get_json(force=True) or {}
+        req = SearchRequest(**body)
+    except ValidationError as ve:
+        return jsonify({"error": "Validation failed", "details": ve.errors()}), 422
+
+    query = req.query.strip()
+    nodes = req.nodes
 
     if not query:
         return jsonify({"matched_nodes": [], "reason": ""})
@@ -354,54 +388,19 @@ def search():
     if not nodes:
         return jsonify({"matched_nodes": [], "reason": "Graph is empty."})
 
-    # Prepare node context
-    node_desc = []
-    for n in nodes:
-        name = n.get("name", "")
-        ntype = n.get("type", "Concept")
-        desc = n.get("description", "")
-        node_desc.append(f"- [{ntype}] {name}: {desc}")
-    nodes_text = "\n".join(node_desc)
+    # Sync current session graph with embedding store
+    store = EmbeddingStore()
+    try:
+        store.embed_nodes(nodes)
+    except Exception as ee:
+        logger.error("Sync embedding store failed: %s", ee)
 
     try:
-        extractor = get_graph_extractor()
-        system_prompt = """You are langextract Semantic Search Engine.
-Given a user query and a list of nodes with descriptions, identify which nodes are semantically relevant to the query based on their meaning, concepts, and descriptions.
-Rank them in order of relevance.
-List up to 3 node names. The names must match the node names in the list EXACTLY.
-Return the result strictly as JSON matching the schema:
-- `matched_nodes`: list of matching node names in order of relevance.
-- `reason`: a brief 1-sentence description of the match connection.
-"""
-        prompt = f"""Nodes list:
-{nodes_text}
-
-Query: {query}
-"""
-        response = extractor.client.models.generate_content(
-            model=extractor.model_id,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                system_instruction=system_prompt,
-                response_mime_type="application/json",
-                response_schema=SearchResponse,
-                temperature=0.1,
-            )
-        )
-        search_data = response.parsed
-        if search_data is not None:
-            matched_nodes = search_data.matched_nodes
-            reason = search_data.reason
-        else:
-            # Fallback parse from raw text
-            raw_text = response.text.strip()
-            if raw_text.startswith("```"):
-                raw_text = re.sub(r'^```[a-zA-Z]*\n|```$', '', raw_text, flags=re.MULTILINE).strip()
-            parsed_json = json.loads(raw_text)
-            matched_nodes = parsed_json.get("matched_nodes", [])
-            reason = parsed_json.get("reason", "")
+        matched_nodes_dicts = store.search(query, top_k=3)
+        matched_nodes = [n["name"] for n in matched_nodes_dicts]
+        reason = "Matched by semantic similarity via embeddings." if matched_nodes else "No semantically matching nodes found."
     except Exception as e:
-        print(f"[Flask /api/search] Semantic search failed: {e}. Using local keyword fallback.")
+        logger.error("Semantic search failed: %s. Using local keyword fallback.", e)
         # Local keyword match fallback
         q_words = set(re.findall(r'\b\w+\b', query.lower()))
         matched_nodes = []

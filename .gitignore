@@ -19,3 +19,6 @@ sample_text.txt
 PLAN.md
 CLAUDE.md
 .claude/
+docker-compose.override.yml
+.pytest_cache/
+PROJECT.md
